@@ -1,0 +1,28 @@
+{
+  "project": "Nik_kiT",
+  "updated_at": "2026-07-04",
+  "current_phase": "P0",
+  "notes": "Single source of truth for phases/steps (WCAS-style). Contracts live in docs/contracts/.",
+  "phases": [
+    {
+      "id": "P0",
+      "name": "Infrastructure",
+      "gate": "3 containers run; Expo app boots + reaches backend (met locally via web sim over loopback; phone-on-LAN deferred — see note)",
+      "status": "done",
+      "note": "Phone-over-Wi-Fi (Expo Go) is blocked by the macOS firewall (stealth mode; node not allowed) and changing the firewall/network is against policy. P0 gate met instead by running the SAME Expo app as a web build on the laptop, calling the backend over 127.0.0.1 — verified GET localhost:6061/api/v1/health → 200 with {db:connected}. Native-on-device revisited if/when a firewall-free network is available.",
+      "steps": [
+        { "id": "P0.1", "name": "Repo scaffold (backend/frontend/infra/progress)", "status": "done" },
+        { "id": "P0.2", "name": "Django skeleton + GET /api/v1/health (db check)", "status": "done" },
+        { "id": "P0.3", "name": "docker-compose: db + app + ui (IPv4 0.0.0.0 binding)", "status": "done" },
+        { "id": "P0.4", "name": "compose up; health verified via curl (direct + ui proxy)", "status": "done" },
+        { "id": "P0.5", "name": "Expo app (SDK 57) boots + reaches backend — verified as WEB sim over loopback (localhost:6060 → localhost:6061 → 200). .claude/launch.json 'web' config added.", "status": "done" }
+      ]
+    },
+    { "id": "P1", "name": "Menu + recipes (M02/M03/M04)", "gate": "admin authors; user browses Parathas/Snacks/Sweets", "status": "todo", "steps": [] },
+    { "id": "P2", "name": "Customization + cart + place order (M04/M05)", "gate": "order reaches PLACED", "status": "todo", "steps": [] },
+    { "id": "P3", "name": "UPI payment cycle (M06/M07/M08)", "gate": "proof upload → confirm → ACCEPTED; stage notifications", "status": "todo", "steps": [] },
+    { "id": "P4", "name": "Admin console + ratings + closures (M09/M10)", "gate": "owner runs kitchen end-to-end", "status": "todo", "steps": [] },
+    { "id": "P5", "name": "Web (browser) polish + real Expo web build in ui", "gate": "web parity", "status": "todo", "steps": [] },
+    { "id": "P6", "name": "EAS build → Play Store (iOS later)", "gate": "installable Android app", "status": "todo", "steps": [] }
+  ]
+}

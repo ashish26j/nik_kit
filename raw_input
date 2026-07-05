@@ -1,0 +1,33 @@
+
+ProjectName: Nik_kiT
+Project ROOT Path: git_repos/zz-misc/wiz4/nik_kit
+
+
+
+I need to create one  quick light Food order App with name "Nik_kiT"
+- This app will have user registrtaion
+- first time user can explore and then while doing order & payment they will be asked for quick registration .. no complex regisration approach. First Name , email and Phone is enough
+- Menu will be showing  sections - Parathas, Snack & Sweets
+- There will be customization option for each items preparation incredients & Preparation method.
+- reate the healthiness star as per the incredient & preparation approach..
+- For sweets there is no such star rating need
+- For each section in Items - I should have ability to add any recepie with princing and images. There should be option to add few more info about recipe as part of description.
+- Admin & user section needed
+
+
+- We need this to run on web and  as mobile app
+- technology - Python(Django) + Ui + DB(MySql)
+
+- UI should look catchy modern and fancy with live ly foody vibe
+
+- Everything should be inside: git_repos/zz-misc/wiz4/nik_kit
+
+- Lets do this development in a docker container locally ( have 3 container as docker compose UI , app, db)
+
+
+
+We should agree on our application directopry structure and development approach - like what how when etc and 
+
+As you can see git_repos/zz-misc/wiz4/claude_memory/project_wcas_evolution.md is one of the project where we are trying to make things organized for sustaining a structured development and not messing or stepping things on each other. The whole idea to get influence with this ( or if we can do better then also thts good) and do our approach finalized.
+
+Let  understand this requirement properly and create a comprehensive development roadmap - blueeprint and Contracts for modules .

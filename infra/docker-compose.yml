@@ -1,0 +1,53 @@
+# Nik_kiT — local dev stack (P0). Run from this dir:  docker compose up --build
+# Services: db (MySQL) · app (Django API, port 6061) · ui (nginx web, port 8080).
+# Metro for the phone runs on the HOST, not here:  cd frontend && npx expo start --port 6060
+name: nikkit
+
+services:
+  db:
+    image: mysql:8.0
+    env_file: .env
+    environment:
+      MYSQL_DATABASE: ${MYSQL_DATABASE}
+      MYSQL_USER: ${MYSQL_USER}
+      MYSQL_PASSWORD: ${MYSQL_PASSWORD}
+      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD}
+    ports:
+      - "127.0.0.1:3306:3306"   # published to localhost only, for dev inspection
+    volumes:
+      - db_data:/var/lib/mysql
+    healthcheck:
+      test: ["CMD-SHELL", "mysqladmin ping -h 127.0.0.1 -uroot -p$$MYSQL_ROOT_PASSWORD --silent"]
+      interval: 5s
+      timeout: 5s
+      retries: 15
+
+  app:
+    build:
+      context: ..
+      dockerfile: infra/app.Dockerfile
+    env_file: .env
+    command: >
+      sh -c "python manage.py migrate --noinput &&
+             python manage.py runserver 0.0.0.0:6061"
+    ports:
+      # Bind IPv4 explicitly so the phone can reach it over the LAN (IPv4).
+      # A bare "6061:6061" can bind IPv6-only on Docker Desktop → phone can't connect.
+      - "0.0.0.0:6061:6061"     # phone/browser reach Django here (LAN IP:6061)
+    volumes:
+      - ../backend:/app          # live code reload in dev
+    depends_on:
+      db:
+        condition: service_healthy
+
+  ui:
+    build:
+      context: ..
+      dockerfile: infra/ui.Dockerfile
+    ports:
+      - "0.0.0.0:8080:80"       # browser web experience (dev placeholder in P0)
+    depends_on:
+      - app
+
+volumes:
+  db_data:

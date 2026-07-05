@@ -1,0 +1,27 @@
+# --- Secrets / env ---
+infra/.env
+*.env
+!infra/env/.env.example
+
+# --- Python / Django ---
+__pycache__/
+*.py[cod]
+*.sqlite3
+backend/media/
+backend/staticfiles/
+.venv/
+venv/
+
+# --- Node / Expo ---
+node_modules/
+frontend/.expo/
+frontend/dist/
+frontend/web-build/
+npm-debug.*
+yarn-error.*
+
+# --- OS / editor ---
+.DS_Store
+.idea/
+.vscode/
+*.log

@@ -1,0 +1,63 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Nik_kiT — P0</title>
+  <style>
+    :root { --bg:#1b1108; --card:#2a1a0d; --accent:#ff8a3d; --ok:#4caf50; --bad:#e5484d; }
+    * { box-sizing: border-box; }
+    body {
+      margin:0; min-height:100vh; display:grid; place-items:center;
+      font-family: system-ui, -apple-system, Segoe UI, Roboto, sans-serif;
+      background: radial-gradient(1200px 600px at 50% -10%, #3a2411, var(--bg));
+      color:#fff8f0;
+    }
+    .card {
+      background: var(--card); border:1px solid #4a2f16; border-radius:20px;
+      padding:32px 40px; width:min(90vw,420px); text-align:center;
+      box-shadow: 0 20px 60px rgba(0,0,0,.45);
+    }
+    h1 { margin:0 0 4px; font-size:2rem; letter-spacing:.5px; }
+    .tag { color:var(--accent); font-weight:600; letter-spacing:2px; font-size:.8rem; }
+    .status { margin-top:24px; font-size:1.1rem; }
+    .dot { display:inline-block; width:10px; height:10px; border-radius:50%;
+           background:#c9a; margin-right:8px; vertical-align:middle; }
+    .ok .dot { background:var(--ok); box-shadow:0 0 12px var(--ok); }
+    .bad .dot { background:var(--bad); box-shadow:0 0 12px var(--bad); }
+    pre { text-align:left; background:#160d05; border-radius:12px; padding:14px;
+          margin-top:18px; font-size:.8rem; color:#ffd9b8; overflow:auto; }
+    button { margin-top:18px; background:var(--accent); color:#2a1400; border:0;
+             padding:10px 20px; border-radius:999px; font-weight:700; cursor:pointer; }
+  </style>
+</head>
+<body>
+  <div class="card">
+    <div class="tag">NIK_KIT · P0</div>
+    <h1>🍽️ Nik_kiT</h1>
+    <div id="status" class="status"><span class="dot"></span>checking backend…</div>
+    <pre id="detail">GET /api/v1/health</pre>
+    <button onclick="ping()">Re-check</button>
+  </div>
+  <script>
+    async function ping() {
+      const el = document.getElementById('status');
+      const detail = document.getElementById('detail');
+      el.className = 'status'; el.innerHTML = '<span class="dot"></span>checking backend…';
+      try {
+        const res = await fetch('/api/v1/health');
+        const data = await res.json();
+        const ok = data.status === 'ok';
+        el.className = 'status ' + (ok ? 'ok' : 'bad');
+        el.innerHTML = '<span class="dot"></span>backend: ' + (ok ? 'ok ✅' : 'degraded ⚠️');
+        detail.textContent = JSON.stringify(data, null, 2);
+      } catch (e) {
+        el.className = 'status bad';
+        el.innerHTML = '<span class="dot"></span>backend: unreachable ❌';
+        detail.textContent = String(e);
+      }
+    }
+    ping();
+  </script>
+</body>
+</html>
