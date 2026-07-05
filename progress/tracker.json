@@ -2,7 +2,7 @@
   "project": "Nik_kiT",
   "updated_at": "2026-07-04",
   "current_phase": "P1",
-  "notes": "Single source of truth for phases/steps (WCAS-style). Contracts live in docs/contracts/.",
+  "notes": "Single source of truth for phases/steps (WCAS-style). Contracts live in docs/contracts/. Phase gate: all applicable tests in tests/ must pass (python3 tests/run_tests.py P<n>), numbered TEST_P<n>_T<NN>.",
   "phases": [
     {
       "id": "P0",

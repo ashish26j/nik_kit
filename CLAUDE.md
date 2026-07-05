@@ -20,7 +20,11 @@ Django + DRF backend, MySQL, 3 Docker containers (ui/app/db).
 4. **No network/firewall changes** (policy). Verify the app on the **laptop over loopback**
    (Expo **web**: `cd frontend && npx expo start --web --port 6060` → calls backend at
    `localhost:6061`). Phone/LAN testing is deferred until a firewall-free network exists.
-5. **Ports:** Metro 6060 · Django 6061 · web/ui 8080 · MySQL 3306 (internal).
+5. **Tests are the phase gate.** Before concluding any feature phase, **all its
+   applicable tests must pass**: `python3 tests/run_tests.py P<n>`. Tests are
+   lightweight, stdlib-only, hit the live localhost stack, and are numbered
+   `TEST_P<phase>_T<NN>`. Add each phase's tests as you build it. See [`tests/`](tests/).
+6. **Ports:** Metro 6060 · Django 6061 · web/ui 8080 · MySQL 3306 (internal).
 
 ## Run locally
 ```bash

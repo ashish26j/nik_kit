@@ -33,6 +33,9 @@ main
 **While working a phase:** stay on that phase's branch and commit changes to it as you go.
 
 **When a phase is done:**
+0. **All applicable tests pass** — `python3 tests/run_tests.py P<n>` returns 0
+   (see [`../tests/`](../tests/)). A feature phase is not "done" until its
+   `TEST_P<n>_T*` cases are green. Add that phase's tests as part of the phase.
 1. Commit all remaining changes to the phase branch.
 2. **Push** the phase branch to `origin`.
 3. Create the **next** phase's branch **from the current one** and continue there.
