@@ -1,7 +1,7 @@
 {
   "project": "Nik_kiT",
   "updated_at": "2026-07-04",
-  "current_phase": "P1",
+  "current_phase": "P2",
   "notes": "Single source of truth for phases/steps (WCAS-style). Contracts live in docs/contracts/. Phase gate: all applicable tests in tests/ must pass (python3 tests/run_tests.py P<n>), numbered TEST_P<n>_T<NN>.",
   "phases": [
     {
@@ -32,7 +32,20 @@
         { "id": "P1.6", "name": "verified via Expo web (loopback): browse → detail → customization renders", "status": "done" }
       ]
     },
-    { "id": "P2", "name": "Customization + cart + place order (M04/M05)", "gate": "order reaches PLACED", "status": "todo", "steps": [] },
+    {
+      "id": "P2", "name": "Customization + cart + place order (M01/M04/M05)", "branch": "P2_CART_ORDER",
+      "gate": "order reaches PLACED", "status": "done",
+      "note": "Client identity = lightweight Client + ClientToken (Bearer, no password); Django User kept for admin. Verified via Expo web loopback (browse→select→cart→checkout→PLACED, order NK-0003) and 7 TEST_P2_* tests.",
+      "steps": [
+        { "id": "P2.1", "name": "accounts app: Client + ClientToken, register/me, Bearer auth + IsClient", "status": "done" },
+        { "id": "P2.2", "name": "orders app: Cart/CartItem/Order/OrderItem + migration; server-authoritative pricing", "status": "done" },
+        { "id": "P2.3", "name": "M05 cart API (cart-key) + M04 option validation (required/single/multi, deltas)", "status": "done" },
+        { "id": "P2.4", "name": "checkout: POST /orders → snapshot lines → PLACED, cart closed; own-orders-only", "status": "done" },
+        { "id": "P2.5", "name": "Expo: option selection, qty, add-to-cart; Cart, Checkout(register), OrderPlaced screens; AsyncStorage", "status": "done" },
+        { "id": "P2.6", "name": "CORS: allow X-Cart-Key header (web preflight fix)", "status": "done" },
+        { "id": "P2.7", "name": "TEST_P2_T01..T07 green + full suite 16/16", "status": "done" }
+      ]
+    },
     { "id": "P3", "name": "UPI payment cycle (M06/M07/M08)", "gate": "proof upload → confirm → ACCEPTED; stage notifications", "status": "todo", "steps": [] },
     { "id": "P4", "name": "Admin console + ratings + closures (M09/M10)", "gate": "owner runs kitchen end-to-end", "status": "todo", "steps": [] },
     { "id": "P5", "name": "Web (browser) polish + real Expo web build in ui", "gate": "web parity", "status": "todo", "steps": [] },

@@ -39,3 +39,40 @@ export const getSections = () => apiGet('/api/v1/sections');
 export const getRecipes = (slug) => apiGet(`/api/v1/sections/${slug}/recipes`);
 export const getRecipe = (id) => apiGet(`/api/v1/recipes/${id}`);
 export const getStoreStatus = () => apiGet('/api/v1/store/status');
+
+// --- Generic request (POST/PATCH/DELETE) with token + cart-key headers ---
+export async function apiRequest(method, path, { body, token, cartKey } = {}) {
+  const headers = { 'Content-Type': 'application/json' };
+  if (token) headers.Authorization = `Bearer ${token}`;
+  if (cartKey) headers['X-Cart-Key'] = cartKey;
+  const res = await fetch(`${API_BASE_URL}${path}`, {
+    method,
+    headers,
+    body: body ? JSON.stringify(body) : undefined,
+  });
+  const text = await res.text();
+  let data = null;
+  try {
+    data = text ? JSON.parse(text) : null;
+  } catch {
+    data = text;
+  }
+  if (!res.ok) {
+    const msg = data?.error?.message || `HTTP ${res.status}`;
+    const e = new Error(msg);
+    e.status = res.status;
+    e.data = data;
+    throw e;
+  }
+  return data;
+}
+
+// --- Cart & order (M05) + auth (M01) helpers ---
+export const addToCart = (item, cartKey) =>
+  apiRequest('POST', '/api/v1/cart/items', { body: item, cartKey });
+export const fetchCart = (cartKey) =>
+  apiRequest('GET', '/api/v1/cart', { cartKey });
+export const registerClient = (payload) =>
+  apiRequest('POST', '/api/v1/auth/register', { body: payload });
+export const placeOrder = (cartKey, token, extra = {}) =>
+  apiRequest('POST', '/api/v1/orders', { body: { cart_key: cartKey, ...extra }, token, cartKey });

@@ -1,46 +1,104 @@
-// Recipe detail (M02) — image, description, price, and read-only customization.
-// Actual selection + add-to-cart arrives in P2.
-import { useEffect, useState } from 'react';
+// Recipe detail (M02 view + M04 selection). Pick options → add to cart (M05).
+import { useEffect, useMemo, useState } from 'react';
 import {
   ActivityIndicator,
   Image,
+  Pressable,
   ScrollView,
   StyleSheet,
   Text,
   View,
 } from 'react-native';
 
-import { getRecipe } from '../config/api';
+import { addToCart, getRecipe } from '../config/api';
+import { KEYS, store } from '../storage';
 import { theme } from '../theme';
 
-export default function RecipeDetailScreen({ route }) {
+export default function RecipeDetailScreen({ route, navigation }) {
   const { id } = route.params;
   const [recipe, setRecipe] = useState(null);
   const [error, setError] = useState(null);
+  const [sel, setSel] = useState({}); // groupId -> optionId (SINGLE) | [ids] (MULTI)
+  const [qty, setQty] = useState(1);
+  const [adding, setAdding] = useState(false);
 
   useEffect(() => {
-    getRecipe(id).then(setRecipe).catch((e) => setError(String(e)));
+    getRecipe(id)
+      .then((r) => {
+        setRecipe(r);
+        const init = {};
+        for (const g of r.customization || []) {
+          if (g.select_type === 'SINGLE') {
+            const def = g.options.find((o) => o.is_default) || g.options[0];
+            if (def) init[g.group_id] = def.id;
+          } else {
+            init[g.group_id] = g.options.filter((o) => o.is_default).map((o) => o.id);
+          }
+        }
+        setSel(init);
+      })
+      .catch((e) => setError(String(e)));
   }, [id]);
 
-  if (error) {
-    return (
-      <View style={[styles.screen, styles.center]}>
-        <Text style={styles.error}>{error}</Text>
-      </View>
-    );
-  }
-  if (!recipe) {
-    return (
-      <View style={[styles.screen, styles.center]}>
-        <ActivityIndicator color={theme.accent} size="large" />
-      </View>
-    );
-  }
+  const selectedIds = useMemo(() => {
+    const ids = [];
+    for (const g of recipe?.customization || []) {
+      const v = sel[g.group_id];
+      if (g.select_type === 'SINGLE') {
+        if (v != null) ids.push(v);
+      } else if (Array.isArray(v)) {
+        ids.push(...v);
+      }
+    }
+    return ids;
+  }, [sel, recipe]);
+
+  const totalPrice = useMemo(() => {
+    if (!recipe) return 0;
+    let p = Number(recipe.price);
+    for (const g of recipe.customization || []) {
+      for (const o of g.options) {
+        const v = sel[g.group_id];
+        const chosen = g.select_type === 'SINGLE' ? v === o.id : (v || []).includes(o.id);
+        if (chosen) p += Number(o.price_delta);
+      }
+    }
+    return p * qty;
+  }, [recipe, sel, qty]);
+
+  if (error) return <Center><Text style={styles.error}>{error}</Text></Center>;
+  if (!recipe) return <Center><ActivityIndicator color={theme.accent} size="large" /></Center>;
 
   const unavailable = recipe.display_status === 'UNAVAILABLE';
 
+  const pickSingle = (gid, oid) => setSel((s) => ({ ...s, [gid]: oid }));
+  const toggleMulti = (gid, oid) =>
+    setSel((s) => {
+      const cur = new Set(s[gid] || []);
+      cur.has(oid) ? cur.delete(oid) : cur.add(oid);
+      return { ...s, [gid]: [...cur] };
+    });
+
+  const onAdd = async () => {
+    setAdding(true);
+    setError(null);
+    try {
+      const cartKey = await store.get(KEYS.cartKey);
+      const cart = await addToCart(
+        { recipe_id: recipe.id, qty, selected_options: selectedIds },
+        cartKey || undefined
+      );
+      await store.set(KEYS.cartKey, cart.cart_key);
+      navigation.navigate('Cart');
+    } catch (e) {
+      setError(e.message || String(e));
+    } finally {
+      setAdding(false);
+    }
+  };
+
   return (
-    <ScrollView style={styles.screen} contentContainerStyle={{ padding: 16, paddingBottom: 48 }}>
+    <ScrollView style={styles.screen} contentContainerStyle={{ padding: 16, paddingBottom: 120 }}>
       <View style={styles.hero}>
         {recipe.images?.length ? (
           <Image source={{ uri: recipe.images[0] }} style={styles.heroImg} />
@@ -53,83 +111,97 @@ export default function RecipeDetailScreen({ route }) {
         <Text style={styles.name}>{recipe.name}</Text>
         <Text style={styles.price}>₹{recipe.price}</Text>
       </View>
-
       <View style={styles.chips}>
         {recipe.is_sweet && <Text style={styles.chip}>Sweet</Text>}
         {unavailable && <Text style={styles.badge}>Not available</Text>}
       </View>
-
       {!!recipe.description && <Text style={styles.desc}>{recipe.description}</Text>}
 
-      {recipe.customization?.length > 0 && (
-        <Text style={styles.makeItYours}>Make it yours</Text>
-      )}
+      {recipe.customization?.length > 0 && <Text style={styles.makeItYours}>Make it yours</Text>}
       {recipe.customization?.map((g) => (
         <View key={g.group_id} style={styles.group}>
           <Text style={styles.groupName}>
-            {g.name}
-            {g.is_required ? ' *' : ''}
-            <Text style={styles.groupMeta}>
-              {'  '}({g.select_type === 'SINGLE' ? 'pick one' : 'pick any'})
-            </Text>
+            {g.name}{g.is_required ? ' *' : ''}
+            <Text style={styles.groupMeta}>{'  '}({g.select_type === 'SINGLE' ? 'pick one' : 'pick any'})</Text>
           </Text>
-          {g.options.map((o) => (
-            <View key={o.id} style={styles.option}>
-              <Text style={styles.optionLabel}>
-                {o.is_default ? '◉ ' : '○ '}
-                {o.label}
-              </Text>
-              {Number(o.price_delta) > 0 && (
-                <Text style={styles.optionDelta}>+₹{o.price_delta}</Text>
-              )}
-            </View>
-          ))}
+          {g.options.map((o) => {
+            const isSingle = g.select_type === 'SINGLE';
+            const chosen = isSingle ? sel[g.group_id] === o.id : (sel[g.group_id] || []).includes(o.id);
+            return (
+              <Pressable
+                key={o.id}
+                style={styles.option}
+                onPress={() => (isSingle ? pickSingle(g.group_id, o.id) : toggleMulti(g.group_id, o.id))}
+              >
+                <Text style={styles.optionLabel}>
+                  {(isSingle ? (chosen ? '◉ ' : '○ ') : (chosen ? '☑ ' : '☐ ')) + o.label}
+                </Text>
+                {Number(o.price_delta) > 0 && <Text style={styles.optionDelta}>+₹{o.price_delta}</Text>}
+              </Pressable>
+            );
+          })}
         </View>
       ))}
 
-      <View style={styles.cta}>
-        <Text style={styles.ctaText}>🛒 Ordering arrives in P2</Text>
-      </View>
+      {!unavailable && (
+        <>
+          <View style={styles.qtyRow}>
+            <Text style={styles.qtyLabel}>Quantity</Text>
+            <View style={styles.stepper}>
+              <Pressable style={styles.stepBtn} onPress={() => setQty((q) => Math.max(1, q - 1))}>
+                <Text style={styles.stepTxt}>−</Text>
+              </Pressable>
+              <Text style={styles.qtyVal}>{qty}</Text>
+              <Pressable style={styles.stepBtn} onPress={() => setQty((q) => q + 1)}>
+                <Text style={styles.stepTxt}>+</Text>
+              </Pressable>
+            </View>
+          </View>
+
+          {!!error && <Text style={styles.error}>{error}</Text>}
+
+          <Pressable style={[styles.addBtn, adding && { opacity: 0.6 }]} onPress={onAdd} disabled={adding}>
+            <Text style={styles.addTxt}>
+              {adding ? 'Adding…' : `Add to cart · ₹${totalPrice.toFixed(2)}`}
+            </Text>
+          </Pressable>
+        </>
+      )}
     </ScrollView>
   );
+}
+
+function Center({ children }) {
+  return <View style={[styles.screen, styles.center]}>{children}</View>;
 }
 
 const styles = StyleSheet.create({
   screen: { flex: 1, backgroundColor: theme.bg },
   center: { alignItems: 'center', justifyContent: 'center', padding: 24 },
-  hero: {
-    height: 180, borderRadius: 18, backgroundColor: theme.cardAlt,
-    alignItems: 'center', justifyContent: 'center', overflow: 'hidden', marginBottom: 16,
-  },
+  hero: { height: 180, borderRadius: 18, backgroundColor: theme.cardAlt, alignItems: 'center', justifyContent: 'center', overflow: 'hidden', marginBottom: 16 },
   heroImg: { width: '100%', height: '100%' },
   heroEmoji: { fontSize: 72 },
   titleRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
   name: { color: theme.text, fontSize: 24, fontWeight: '800', flex: 1, paddingRight: 12 },
   price: { color: theme.accent, fontSize: 22, fontWeight: '800' },
   chips: { flexDirection: 'row', gap: 8, marginTop: 8 },
-  chip: {
-    color: theme.bg, backgroundColor: theme.accent, fontSize: 11, fontWeight: '800',
-    borderRadius: 8, paddingHorizontal: 8, paddingVertical: 3, overflow: 'hidden',
-  },
-  badge: {
-    color: theme.bad, fontSize: 11, fontWeight: '800',
-    borderColor: theme.bad, borderWidth: 1, borderRadius: 8, paddingHorizontal: 8, paddingVertical: 3,
-  },
+  chip: { color: theme.bg, backgroundColor: theme.accent, fontSize: 11, fontWeight: '800', borderRadius: 8, paddingHorizontal: 8, paddingVertical: 3, overflow: 'hidden' },
+  badge: { color: theme.bad, fontSize: 11, fontWeight: '800', borderColor: theme.bad, borderWidth: 1, borderRadius: 8, paddingHorizontal: 8, paddingVertical: 3 },
   desc: { color: theme.muted, fontSize: 15, lineHeight: 22, marginTop: 14 },
   makeItYours: { color: theme.text, fontSize: 18, fontWeight: '800', marginTop: 26, marginBottom: 8 },
-  group: {
-    backgroundColor: theme.card, borderColor: theme.border, borderWidth: 1,
-    borderRadius: 14, padding: 14, marginBottom: 12,
-  },
+  group: { backgroundColor: theme.card, borderColor: theme.border, borderWidth: 1, borderRadius: 14, padding: 14, marginBottom: 12 },
   groupName: { color: theme.text, fontSize: 15, fontWeight: '700', marginBottom: 8 },
   groupMeta: { color: theme.muted, fontSize: 12, fontWeight: '600' },
-  option: { flexDirection: 'row', justifyContent: 'space-between', paddingVertical: 5 },
-  optionLabel: { color: theme.text, fontSize: 14 },
-  optionDelta: { color: theme.accent, fontSize: 14, fontWeight: '700' },
-  cta: {
-    marginTop: 24, backgroundColor: theme.cardAlt, borderRadius: 14,
-    paddingVertical: 16, alignItems: 'center',
-  },
-  ctaText: { color: theme.muted, fontSize: 14, fontWeight: '700' },
-  error: { color: theme.bad, textAlign: 'center' },
+  option: { flexDirection: 'row', justifyContent: 'space-between', paddingVertical: 8 },
+  optionLabel: { color: theme.text, fontSize: 15 },
+  optionDelta: { color: theme.accent, fontSize: 15, fontWeight: '700' },
+  qtyRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginTop: 20 },
+  qtyLabel: { color: theme.text, fontSize: 16, fontWeight: '700' },
+  stepper: { flexDirection: 'row', alignItems: 'center', gap: 16 },
+  stepBtn: { width: 40, height: 40, borderRadius: 20, backgroundColor: theme.card, borderColor: theme.border, borderWidth: 1, alignItems: 'center', justifyContent: 'center' },
+  stepTxt: { color: theme.text, fontSize: 22, fontWeight: '800' },
+  qtyVal: { color: theme.text, fontSize: 18, fontWeight: '800', minWidth: 24, textAlign: 'center' },
+  addBtn: { marginTop: 22, backgroundColor: theme.accent, borderRadius: 14, paddingVertical: 16, alignItems: 'center' },
+  addTxt: { color: '#2a1400', fontSize: 16, fontWeight: '800' },
+  error: { color: theme.bad, textAlign: 'center', marginTop: 12 },
 });

@@ -1,9 +1,12 @@
-// Nik_kiT — app entry. P1: browse the menu (Home → Recipe detail).
+// Nik_kiT — app entry. P1: browse. P2: cart → checkout → order placed.
 import { NavigationContainer } from '@react-navigation/native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { StatusBar } from 'expo-status-bar';
 
+import CartScreen from './screens/CartScreen';
+import CheckoutScreen from './screens/CheckoutScreen';
 import HomeScreen from './screens/HomeScreen';
+import OrderPlacedScreen from './screens/OrderPlacedScreen';
 import RecipeDetailScreen from './screens/RecipeDetailScreen';
 import { theme } from './theme';
 
@@ -26,6 +29,13 @@ export default function App() {
           name="Recipe"
           component={RecipeDetailScreen}
           options={({ route }) => ({ title: route.params?.name || 'Recipe' })}
+        />
+        <Stack.Screen name="Cart" component={CartScreen} options={{ title: 'Cart' }} />
+        <Stack.Screen name="Checkout" component={CheckoutScreen} options={{ title: 'Checkout' }} />
+        <Stack.Screen
+          name="OrderPlaced"
+          component={OrderPlacedScreen}
+          options={{ title: 'Order placed', headerBackVisible: false }}
         />
       </Stack.Navigator>
     </NavigationContainer>

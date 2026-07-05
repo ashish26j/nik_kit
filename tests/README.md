@@ -43,5 +43,6 @@ pre-push / phase-completion gate. Override targets with env vars if needed:
 |---|---|
 | **P0** | `TEST_P0_T01` health ok + db connected · `TEST_P0_T02` web serves + proxies API |
 | **P1** | `TEST_P1_T01` sections in order · `T02` UNAVAILABLE shown/HIDDEN excluded · `T03` savoury customization embedded · `T04` sweets have none · `T05` store status open · `T06` unknown recipe 404 · `T07` admin reachable |
+| **P2** | `TEST_P2_T01` register idempotent by phone · `T02` server-side price · `T03` required option 400 · `T04` unavailable 409 · `T05` checkout needs token · `T06` order→PLACED + cart closed · `T07` own-orders-only |
 
 Add a phase's tests as you build it; keep this table and the runner in sync.

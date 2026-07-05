@@ -44,6 +44,41 @@ def get_json(path):
     return json.loads(body)
 
 
+def request(method, path, body=None, headers=None, timeout=8):
+    """Return (status_code, parsed_json_or_text). Body is JSON-encoded."""
+    data = json.dumps(body).encode() if body is not None else None
+    h = {"Content-Type": "application/json", "Accept": "application/json"}
+    if headers:
+        h.update(headers)
+    req = urllib.request.Request(BASE_URL + path, data=data, method=method, headers=h)
+    try:
+        with urllib.request.urlopen(req, timeout=timeout) as r:
+            raw = r.read().decode()
+            status = r.status
+    except urllib.error.HTTPError as e:
+        raw, status = e.read().decode(), e.code
+    try:
+        return status, json.loads(raw) if raw else None
+    except ValueError:
+        return status, raw
+
+
+def post(path, body=None, headers=None):
+    return request("POST", path, body, headers)
+
+
+def patch(path, body=None, headers=None):
+    return request("PATCH", path, body, headers)
+
+
+def delete(path, headers=None):
+    return request("DELETE", path, None, headers)
+
+
+def bearer(token):
+    return {"Authorization": f"Bearer {token}"}
+
+
 def status_no_redirect(url, timeout=8):
     """Return the HTTP status WITHOUT following redirects (so /admin/ → 302)."""
     class _NoRedirect(urllib.request.HTTPRedirectHandler):

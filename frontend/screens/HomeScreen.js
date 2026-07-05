@@ -65,6 +65,9 @@ export default function HomeScreen({ navigation }) {
       <View style={styles.header}>
         <Text style={styles.logo}>🍽️ Nik_kiT</Text>
         <Text style={styles.tagline}>Parathas · Snacks · Sweets</Text>
+        <Pressable style={styles.cartBtn} onPress={() => navigation.navigate('Cart')}>
+          <Text style={styles.cartBtnTxt}>🛒 Cart</Text>
+        </Pressable>
       </View>
 
       {sections.map((s) => (
@@ -115,6 +118,8 @@ const styles = StyleSheet.create({
   screen: { flex: 1, backgroundColor: theme.bg },
   center: { alignItems: 'center', justifyContent: 'center', padding: 24 },
   header: { paddingTop: 64, paddingBottom: 16, paddingHorizontal: 20, alignItems: 'center' },
+  cartBtn: { position: 'absolute', right: 16, top: 60, backgroundColor: theme.card, borderColor: theme.border, borderWidth: 1, borderRadius: 999, paddingHorizontal: 14, paddingVertical: 8 },
+  cartBtnTxt: { color: theme.text, fontWeight: '800', fontSize: 13 },
   logo: { color: theme.text, fontSize: 34, fontWeight: '800' },
   tagline: { color: theme.accent, fontSize: 13, fontWeight: '700', letterSpacing: 2, marginTop: 4 },
   section: { paddingHorizontal: 16, marginTop: 18 },

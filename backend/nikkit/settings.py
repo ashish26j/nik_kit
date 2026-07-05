@@ -32,6 +32,8 @@ INSTALLED_APPS = [
     # local
     "apps.core",
     "apps.menu",
+    "apps.accounts",
+    "apps.orders",
 ]
 
 MIDDLEWARE = [
@@ -95,9 +97,17 @@ MEDIA_ROOT = BASE_DIR / "media"
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 
 # --- DRF ----------------------------------------------------------------------
+# No global auth — endpoints opt in (client token) explicitly. This avoids
+# SessionAuthentication's CSRF on our token/anon POSTs (register, cart).
 REST_FRAMEWORK = {
     "DEFAULT_RENDERER_CLASSES": ["rest_framework.renderers.JSONRenderer"],
+    "DEFAULT_AUTHENTICATION_CLASSES": [],
+    "DEFAULT_PERMISSION_CLASSES": ["rest_framework.permissions.AllowAny"],
 }
 
 # --- CORS (dev: allow the phone/browser to reach the API) ---------------------
+from corsheaders.defaults import default_headers  # noqa: E402
+
 CORS_ALLOW_ALL_ORIGINS = env.bool("CORS_ALLOW_ALL_ORIGINS", default=True)
+# The web app sends a custom cart header; it must be allowed through CORS preflight.
+CORS_ALLOW_HEADERS = (*default_headers, "x-cart-key")
