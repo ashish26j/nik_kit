@@ -34,6 +34,7 @@ INSTALLED_APPS = [
     "apps.menu",
     "apps.accounts",
     "apps.orders",
+    "apps.notifications",
 ]
 
 MIDDLEWARE = [
@@ -111,3 +112,10 @@ from corsheaders.defaults import default_headers  # noqa: E402
 CORS_ALLOW_ALL_ORIGINS = env.bool("CORS_ALLOW_ALL_ORIGINS", default=True)
 # The web app sends a custom cart header; it must be allowed through CORS preflight.
 CORS_ALLOW_HEADERS = (*default_headers, "x-cart-key")
+
+# --- Payments & notifications (M06/M08) ---------------------------------------
+# Manual UPI: the business UPI id shown in the QR, and where owner pings go.
+BUSINESS_UPI_ID = env("BUSINESS_UPI_ID", default="nikkit@upi")
+BUSINESS_CONTACT_EMAIL = env("BUSINESS_CONTACT_EMAIL", default="owner@nikkit.local")
+# Dev: emails print to the container console. Swap for SMTP/WhatsApp later (M08 seam).
+EMAIL_BACKEND = env("EMAIL_BACKEND", default="django.core.mail.backends.console.EmailBackend")

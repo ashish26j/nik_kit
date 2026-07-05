@@ -8,3 +8,11 @@ class IsClient(BasePermission):
 
     def has_permission(self, request, view):
         return isinstance(getattr(request, "user", None), Client)
+
+
+class IsAdmin(BasePermission):
+    message = "Admin (staff) token required."
+
+    def has_permission(self, request, view):
+        user = getattr(request, "user", None)
+        return bool(user is not None and getattr(user, "is_staff", False))

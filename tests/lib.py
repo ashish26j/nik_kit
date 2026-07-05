@@ -79,6 +79,39 @@ def bearer(token):
     return {"Authorization": f"Bearer {token}"}
 
 
+def post_file(path, field, filename, content, content_type="image/png", headers=None, timeout=8):
+    """POST a multipart/form-data file upload (stdlib only)."""
+    import uuid
+
+    boundary = "----nk" + uuid.uuid4().hex
+    body = b"".join([
+        f"--{boundary}\r\n".encode(),
+        f'Content-Disposition: form-data; name="{field}"; filename="{filename}"\r\n'.encode(),
+        f"Content-Type: {content_type}\r\n\r\n".encode(),
+        content,
+        f"\r\n--{boundary}--\r\n".encode(),
+    ])
+    h = {"Content-Type": f"multipart/form-data; boundary={boundary}"}
+    if headers:
+        h.update(headers)
+    req = urllib.request.Request(BASE_URL + path, data=body, method="POST", headers=h)
+    try:
+        with urllib.request.urlopen(req, timeout=timeout) as r:
+            raw, status = r.read().decode(), r.status
+    except urllib.error.HTTPError as e:
+        raw, status = e.read().decode(), e.code
+    try:
+        return status, json.loads(raw) if raw else None
+    except ValueError:
+        return status, raw
+
+
+# A minimal valid 1x1 PNG, for payment-proof uploads.
+PNG_1x1 = __import__("base64").b64decode(
+    "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNkYPhfDwAChwGA60e6kgAAAABJRU5ErkJggg=="
+)
+
+
 def status_no_redirect(url, timeout=8):
     """Return the HTTP status WITHOUT following redirects (so /admin/ → 302)."""
     class _NoRedirect(urllib.request.HTTPRedirectHandler):

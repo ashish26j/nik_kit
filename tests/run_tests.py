@@ -24,6 +24,7 @@ import lib  # noqa: E402
 import test_p0  # noqa: E402,F401
 import test_p1  # noqa: E402,F401
 import test_p2  # noqa: E402,F401
+import test_p3  # noqa: E402,F401
 
 
 def main():

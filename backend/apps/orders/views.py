@@ -6,7 +6,9 @@ cart; checkout requires a client token (M01).
 """
 import secrets
 
+from django.conf import settings
 from django.shortcuts import get_object_or_404
+from django.utils import timezone
 from rest_framework.decorators import (
     api_view,
     authentication_classes,
@@ -16,11 +18,13 @@ from rest_framework.exceptions import ValidationError
 from rest_framework.permissions import AllowAny
 from rest_framework.response import Response
 
-from apps.accounts.auth import ClientTokenAuthentication
-from apps.accounts.permissions import IsClient
+from apps.accounts.auth import AdminTokenAuthentication, ClientTokenAuthentication
+from apps.accounts.permissions import IsAdmin, IsClient
 from apps.menu.models import Recipe
+from apps.notifications.services import notify
 
-from .models import Cart, CartItem, Order, OrderItem
+from . import transitions
+from .models import Cart, CartItem, Order, OrderItem, PaymentIntent, PaymentProof
 from .services import option_labels, validate_and_price
 
 
@@ -178,6 +182,18 @@ def orders_root(request):
     cart.is_open = False
     cart.client = request.user
     cart.save(update_fields=["is_open", "client"])
+
+    # M06: freeze a UPI invoice for this order. M07: log PLACED + notify.
+    PaymentIntent.objects.create(
+        order=order,
+        upi_id=settings.BUSINESS_UPI_ID,
+        amount=order.total,
+        qr_payload=(
+            f"upi://pay?pa={settings.BUSINESS_UPI_ID}&pn=Nik_kiT"
+            f"&am={order.total}&cu=INR&tn={order.code}"
+        ),
+    )
+    transitions.record_placed(order, f"client:{request.user.id}")
     return Response(serialize_order(order), status=201)
 
 
@@ -187,3 +203,145 @@ def orders_root(request):
 def order_detail(request, pk):
     order = get_object_or_404(Order, pk=pk, client=request.user)
     return Response(serialize_order(order))
+
+
+# --- M06 payment (client) ----------------------------------------------------
+@api_view(["GET"])
+@authentication_classes([ClientTokenAuthentication])
+@permission_classes([IsClient])
+def payment_info(request, pk):
+    order = get_object_or_404(Order, pk=pk, client=request.user)
+    intent = order.payment_intent
+    proof = order.proofs.filter(is_current=True).first()
+    return Response({
+        "upi_id": intent.upi_id,
+        "amount": str(intent.amount),
+        "qr_payload": intent.qr_payload,
+        "order_status": order.status,
+        "proof": {"decision": proof.decision} if proof else None,
+    })
+
+
+@api_view(["POST"])
+@authentication_classes([ClientTokenAuthentication])
+@permission_classes([IsClient])
+def upload_proof(request, pk):
+    order = get_object_or_404(Order, pk=pk, client=request.user)
+    if order.status not in (Order.Status.PLACED, Order.Status.PAYMENT_REJECTED):
+        return err("STATE_CONFLICT", "payment cannot be submitted for this order now", 409)
+    image = request.FILES.get("image")
+    if not image:
+        return err("VALIDATION_ERROR", "image is required", 400)
+
+    order.proofs.update(is_current=False)  # supersede any prior proof (keep history)
+    PaymentProof.objects.create(order=order, image=image, is_current=True)
+    transitions.transition(order, Order.Status.PAYMENT_SUBMITTED,
+                           f"client:{request.user.id}", notify_client=False)
+    # M06 R3 — ping the owner "Payment received? (Yes/No)".
+    notify(
+        "PAYMENT_SUBMITTED_OWNER", order=order,
+        recipients=[("ADMIN", settings.BUSINESS_CONTACT_EMAIL)], channels=("EMAIL",),
+        payload={"subject": f"Payment submitted · {order.code}",
+                 "message": f"Payment proof submitted for {order.code} (₹{order.total}). Confirm? Yes/No"},
+    )
+    return Response({"order_status": order.status})
+
+
+# --- M07 tracking (client) ---------------------------------------------------
+@api_view(["GET"])
+@authentication_classes([ClientTokenAuthentication])
+@permission_classes([IsClient])
+def order_tracking(request, pk):
+    order = get_object_or_404(Order, pk=pk, client=request.user)
+    events = list(order.events.all())
+    current_stage = ""
+    for e in events:
+        if e.customer_stage:
+            current_stage = e.customer_stage
+    history = [
+        {"to": e.to_status, "stage": e.customer_stage, "at": e.created_at.isoformat()}
+        for e in events
+    ]
+    return Response({"status": order.status, "customer_stage": current_stage, "history": history})
+
+
+# --- Admin (M06 confirm gate + M07 advance) ----------------------------------
+def _admin_label(request):
+    return f"admin:{request.user.username}"
+
+
+@api_view(["POST"])
+@authentication_classes([AdminTokenAuthentication])
+@permission_classes([IsAdmin])
+def admin_confirm_payment(request, pk):
+    order = get_object_or_404(Order, pk=pk)
+    if order.status != Order.Status.PAYMENT_SUBMITTED:
+        return err("STATE_CONFLICT", "no submitted payment to confirm", 409)
+    proof = order.proofs.filter(is_current=True).first()
+    if proof:
+        proof.decision = PaymentProof.Decision.CONFIRMED
+        proof.decided_by = _admin_label(request)
+        proof.decided_at = timezone.now()
+        proof.save()
+    transitions.confirm_payment(order, _admin_label(request))
+    return Response({"order_status": order.status})
+
+
+@api_view(["POST"])
+@authentication_classes([AdminTokenAuthentication])
+@permission_classes([IsAdmin])
+def admin_reject_payment(request, pk):
+    order = get_object_or_404(Order, pk=pk)
+    if order.status != Order.Status.PAYMENT_SUBMITTED:
+        return err("STATE_CONFLICT", "no submitted payment to reject", 409)
+    reason = (request.data.get("reason") or "")[:140]
+    proof = order.proofs.filter(is_current=True).first()
+    if proof:
+        proof.decision = PaymentProof.Decision.REJECTED
+        proof.decided_by = _admin_label(request)
+        proof.decided_at = timezone.now()
+        proof.reject_reason = reason
+        proof.save()
+    transitions.transition(order, Order.Status.PAYMENT_REJECTED, _admin_label(request), reason=reason)
+    notify(
+        "PAYMENT_REJECTED", order=order,
+        recipients=([("CLIENT", order.client.email)] if order.client.email else []),
+        channels=("EMAIL", "INAPP"),
+        payload={"subject": "Payment needs re-upload",
+                 "message": f"Payment for {order.code} couldn't be confirmed. Please re-upload. {reason}"},
+    )
+    return Response({"order_status": order.status})
+
+
+@api_view(["POST"])
+@authentication_classes([AdminTokenAuthentication])
+@permission_classes([IsAdmin])
+def admin_advance(request, pk):
+    order = get_object_or_404(Order, pk=pk)
+    to = request.data.get("to")
+    try:
+        transitions.transition(order, to, _admin_label(request))
+    except ValidationError as e:
+        return err("STATE_CONFLICT", _msg(e), 409)
+    return Response({"order_status": order.status})
+
+
+@api_view(["POST"])
+@authentication_classes([AdminTokenAuthentication])
+@permission_classes([IsAdmin])
+def admin_cancel(request, pk):
+    order = get_object_or_404(Order, pk=pk)
+    try:
+        transitions.transition(order, Order.Status.CANCELLED, _admin_label(request),
+                               reason=(request.data.get("reason") or "")[:140])
+    except ValidationError as e:
+        return err("STATE_CONFLICT", _msg(e), 409)
+    return Response({"order_status": order.status})
+
+
+@api_view(["GET"])
+@authentication_classes([AdminTokenAuthentication])
+@permission_classes([IsAdmin])
+def admin_payments_queue(request):
+    qs = Order.objects.filter(status=Order.Status.PAYMENT_SUBMITTED)
+    return Response([serialize_order(o) for o in qs])

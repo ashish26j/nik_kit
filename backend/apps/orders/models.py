@@ -49,8 +49,14 @@ class CartItem(models.Model):
 class Order(models.Model):
     class Status(models.TextChoices):
         PLACED = "PLACED", "Placed"
+        PAYMENT_SUBMITTED = "PAYMENT_SUBMITTED", "Payment submitted"
+        PAYMENT_REJECTED = "PAYMENT_REJECTED", "Payment rejected"
+        PAYMENT_CONFIRMED = "PAYMENT_CONFIRMED", "Payment confirmed"
+        ACCEPTED = "ACCEPTED", "Accepted"
+        PREPARING = "PREPARING", "Preparing"
+        READY_FOR_PICKUP = "READY_FOR_PICKUP", "Ready for pickup"
+        COMPLETED = "COMPLETED", "Completed"
         CANCELLED = "CANCELLED", "Cancelled"
-        # payment + kitchen states (PAYMENT_SUBMITTED … COMPLETED) arrive with M07/P3
 
     code = models.CharField(max_length=12, unique=True)
     client = models.ForeignKey(Client, on_delete=models.PROTECT, related_name="orders")
@@ -80,3 +86,49 @@ class OrderItem(models.Model):
     qty = models.PositiveIntegerField()
     line_total = models.DecimalField(max_digits=10, decimal_places=2)
     options_snapshot = models.JSONField(default=list)  # [{label, price_delta}]
+
+
+class OrderEvent(models.Model):
+    """Append-only lifecycle log (M07). One row per accepted transition."""
+
+    order = models.ForeignKey(Order, on_delete=models.CASCADE, related_name="events")
+    from_status = models.CharField(max_length=20, blank=True)
+    to_status = models.CharField(max_length=20)
+    actor_label = models.CharField(max_length=60)  # "client:42" | "admin:nik" | "system"
+    reason = models.CharField(max_length=140, blank=True)
+    customer_stage = models.CharField(max_length=40, blank=True)  # headline stage or ""
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ["created_at", "id"]
+
+
+class PaymentIntent(models.Model):
+    """UPI invoice for an order (M06). Amount frozen from order.total."""
+
+    order = models.OneToOneField(Order, on_delete=models.CASCADE, related_name="payment_intent")
+    upi_id = models.CharField(max_length=100)
+    amount = models.DecimalField(max_digits=10, decimal_places=2)
+    qr_payload = models.TextField()
+    created_at = models.DateTimeField(auto_now_add=True)
+
+
+class PaymentProof(models.Model):
+    """Uploaded payment screenshot + the owner's decision (M06)."""
+
+    class Decision(models.TextChoices):
+        PENDING = "PENDING", "Pending"
+        CONFIRMED = "CONFIRMED", "Confirmed"
+        REJECTED = "REJECTED", "Rejected"
+
+    order = models.ForeignKey(Order, on_delete=models.CASCADE, related_name="proofs")
+    image = models.ImageField(upload_to="proofs/")
+    is_current = models.BooleanField(default=True)
+    decision = models.CharField(max_length=10, choices=Decision.choices, default=Decision.PENDING)
+    decided_by = models.CharField(max_length=60, blank=True)
+    reject_reason = models.CharField(max_length=140, blank=True)
+    uploaded_at = models.DateTimeField(auto_now_add=True)
+    decided_at = models.DateTimeField(null=True, blank=True)
+
+    class Meta:
+        ordering = ["-uploaded_at"]

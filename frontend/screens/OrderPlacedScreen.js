@@ -28,8 +28,12 @@ export default function OrderPlacedScreen({ route, navigation }) {
         </View>
       </View>
 
-      <Text style={styles.next}>Payment &amp; live tracking arrive in P3.</Text>
-
+      <Pressable style={styles.pay} onPress={() => navigation.replace('Payment', { orderId: order.id })}>
+        <Text style={styles.payTxt}>Pay ₹{order.total} by UPI</Text>
+      </Pressable>
+      <Pressable style={styles.track} onPress={() => navigation.navigate('Tracking', { orderId: order.id })}>
+        <Text style={styles.trackTxt}>Track order</Text>
+      </Pressable>
       <Pressable style={styles.home} onPress={() => navigation.navigate('Home')}>
         <Text style={styles.homeTxt}>Back to menu</Text>
       </Pressable>
@@ -51,7 +55,10 @@ const styles = StyleSheet.create({
   totalRow: { borderTopColor: theme.border, borderTopWidth: 1, marginTop: 8, paddingTop: 12 },
   totalLabel: { color: theme.text, fontSize: 17, fontWeight: '800' },
   totalVal: { color: theme.accent, fontSize: 19, fontWeight: '800' },
-  next: { color: theme.muted, fontSize: 13, marginTop: 22, textAlign: 'center' },
-  home: { marginTop: 20, backgroundColor: theme.accent, borderRadius: 14, paddingVertical: 14, paddingHorizontal: 28 },
-  homeTxt: { color: '#2a1400', fontSize: 16, fontWeight: '800' },
+  pay: { alignSelf: 'stretch', marginTop: 26, backgroundColor: theme.accent, borderRadius: 14, paddingVertical: 16, alignItems: 'center' },
+  payTxt: { color: '#2a1400', fontSize: 16, fontWeight: '800' },
+  track: { alignSelf: 'stretch', marginTop: 12, backgroundColor: theme.card, borderColor: theme.border, borderWidth: 1, borderRadius: 14, paddingVertical: 14, alignItems: 'center' },
+  trackTxt: { color: theme.text, fontSize: 15, fontWeight: '800' },
+  home: { marginTop: 16, paddingVertical: 12, paddingHorizontal: 28 },
+  homeTxt: { color: theme.muted, fontSize: 15, fontWeight: '700' },
 });

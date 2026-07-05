@@ -7,6 +7,7 @@ customers with zero auth overhead and needs no AUTH_USER_MODEL change.
 """
 import secrets
 
+from django.conf import settings
 from django.db import models
 
 
@@ -41,3 +42,20 @@ class ClientToken(models.Model):
 
     def __str__(self):
         return f"token:{self.client.phone}"
+
+
+class AdminToken(models.Model):
+    """Bearer token for a Django staff user (M01 admin login)."""
+
+    user = models.ForeignKey(
+        settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name="admin_tokens"
+    )
+    token = models.CharField(max_length=40, unique=True, db_index=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    @classmethod
+    def issue(cls, user):
+        return cls.objects.create(user=user, token=secrets.token_hex(20))
+
+    def __str__(self):
+        return f"admintoken:{self.user}"

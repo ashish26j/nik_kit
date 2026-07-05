@@ -7,8 +7,10 @@ from rest_framework.decorators import (
 from rest_framework.permissions import AllowAny
 from rest_framework.response import Response
 
+from django.contrib.auth import authenticate
+
 from .auth import ClientTokenAuthentication
-from .models import Client, ClientToken
+from .models import AdminToken, Client, ClientToken
 from .permissions import IsClient
 from .utils import normalize_phone
 
@@ -67,3 +69,19 @@ def register(request):
 @permission_classes([IsClient])
 def me(request):
     return Response(_client_payload(request.user))
+
+
+@api_view(["POST"])
+@permission_classes([AllowAny])
+def admin_login(request):
+    """Authenticate a Django staff user → issue an admin Bearer token (M01)."""
+    user = authenticate(
+        username=request.data.get("username"), password=request.data.get("password")
+    )
+    if not user or not user.is_staff:
+        return Response(
+            {"error": {"code": "AUTH_REQUIRED", "message": "invalid credentials"}},
+            status=401,
+        )
+    token = AdminToken.issue(user)
+    return Response({"token": token.token, "role": "ADMIN", "username": user.username})

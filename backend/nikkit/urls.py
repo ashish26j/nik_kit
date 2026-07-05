@@ -10,6 +10,7 @@ urlpatterns = [
     path("api/v1/", include("apps.menu.urls")),
     path("api/v1/", include("apps.accounts.urls")),
     path("api/v1/", include("apps.orders.urls")),
+    path("api/v1/", include("apps.notifications.urls")),
 ]
 
 # Serve uploaded recipe images from the media volume during dev.

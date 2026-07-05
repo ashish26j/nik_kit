@@ -7,7 +7,9 @@ import CartScreen from './screens/CartScreen';
 import CheckoutScreen from './screens/CheckoutScreen';
 import HomeScreen from './screens/HomeScreen';
 import OrderPlacedScreen from './screens/OrderPlacedScreen';
+import PaymentScreen from './screens/PaymentScreen';
 import RecipeDetailScreen from './screens/RecipeDetailScreen';
+import TrackingScreen from './screens/TrackingScreen';
 import { theme } from './theme';
 
 const Stack = createNativeStackNavigator();
@@ -37,6 +39,8 @@ export default function App() {
           component={OrderPlacedScreen}
           options={{ title: 'Order placed', headerBackVisible: false }}
         />
+        <Stack.Screen name="Payment" component={PaymentScreen} options={{ title: 'Pay by UPI' }} />
+        <Stack.Screen name="Tracking" component={TrackingScreen} options={{ title: 'Track order' }} />
       </Stack.Navigator>
     </NavigationContainer>
   );

@@ -1,7 +1,7 @@
 {
   "project": "Nik_kiT",
   "updated_at": "2026-07-04",
-  "current_phase": "P2",
+  "current_phase": "P3",
   "notes": "Single source of truth for phases/steps (WCAS-style). Contracts live in docs/contracts/. Phase gate: all applicable tests in tests/ must pass (python3 tests/run_tests.py P<n>), numbered TEST_P<n>_T<NN>.",
   "phases": [
     {
@@ -46,7 +46,20 @@
         { "id": "P2.7", "name": "TEST_P2_T01..T07 green + full suite 16/16", "status": "done" }
       ]
     },
-    { "id": "P3", "name": "UPI payment cycle (M06/M07/M08)", "gate": "proof upload → confirm → ACCEPTED; stage notifications", "status": "todo", "steps": [] },
+    {
+      "id": "P3", "name": "UPI payment + order tracking + notifications (M06/M07/M08)", "branch": "P3_PAYMENT",
+      "gate": "proof upload → owner confirm → ACCEPTED; per-stage notifications", "status": "done",
+      "note": "Admin login added (AdminToken, seeded 'nik'). Owner drives lifecycle via REST admin endpoints AND Django admin actions. Email=console backend (dev). Verified: full suite 26/26; web loopback QR + tracking timeline.",
+      "steps": [
+        { "id": "P3.1", "name": "M08 notifications app: Notification model + notify() (email console + inapp; whatsapp/push stubs); admin log endpoint", "status": "done" },
+        { "id": "P3.2", "name": "M01 admin login: AdminToken + /auth/admin/login + AdminTokenAuthentication + IsAdmin", "status": "done" },
+        { "id": "P3.3", "name": "M07 tracking engine: Order status enum, OrderEvent, transition table, record_placed/confirm_payment; sole writer of status", "status": "done" },
+        { "id": "P3.4", "name": "M06 payment: PaymentIntent (QR) at checkout, GET payment, upload proof→PAYMENT_SUBMITTED, admin confirm/reject", "status": "done" },
+        { "id": "P3.5", "name": "admin advance/cancel endpoints + Django admin actions (confirm/prepare/ready/complete)", "status": "done" },
+        { "id": "P3.6", "name": "Expo: Payment screen (UPI QR via react-native-qrcode-svg + image-picker upload), Tracking timeline, OrderPlaced pay/track buttons", "status": "done" },
+        { "id": "P3.7", "name": "TEST_P3_T01..T10 green + full suite 26/26; QR+tracking verified via web", "status": "done" }
+      ]
+    },
     { "id": "P4", "name": "Admin console + ratings + closures (M09/M10)", "gate": "owner runs kitchen end-to-end", "status": "todo", "steps": [] },
     { "id": "P5", "name": "Web (browser) polish + real Expo web build in ui", "gate": "web parity", "status": "todo", "steps": [] },
     { "id": "P6", "name": "EAS build → Play Store (iOS later)", "gate": "installable Android app", "status": "todo", "steps": [] }

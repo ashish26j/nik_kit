@@ -76,3 +76,21 @@ export const registerClient = (payload) =>
   apiRequest('POST', '/api/v1/auth/register', { body: payload });
 export const placeOrder = (cartKey, token, extra = {}) =>
   apiRequest('POST', '/api/v1/orders', { body: { cart_key: cartKey, ...extra }, token, cartKey });
+
+// --- Payment + tracking (M06/M07) ---
+export const getPaymentInfo = (orderId, token) =>
+  apiRequest('GET', `/api/v1/orders/${orderId}/payment`, { token });
+export const getTracking = (orderId, token) =>
+  apiRequest('GET', `/api/v1/orders/${orderId}/tracking`, { token });
+
+// Multipart proof upload — let the platform set the multipart boundary itself.
+export async function uploadProof(orderId, token, formData) {
+  const res = await fetch(`${API_BASE_URL}/api/v1/orders/${orderId}/payment/proof`, {
+    method: 'POST',
+    headers: { Authorization: `Bearer ${token}` },
+    body: formData,
+  });
+  const text = await res.text();
+  if (!res.ok) throw new Error(text || `HTTP ${res.status}`);
+  return text ? JSON.parse(text) : null;
+}
