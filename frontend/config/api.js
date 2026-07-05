@@ -33,3 +33,9 @@ export async function apiGet(path) {
   if (!res.ok) throw new Error(`HTTP ${res.status}`);
   return res.json();
 }
+
+// --- Menu (M02) read helpers ---
+export const getSections = () => apiGet('/api/v1/sections');
+export const getRecipes = (slug) => apiGet(`/api/v1/sections/${slug}/recipes`);
+export const getRecipe = (id) => apiGet(`/api/v1/recipes/${id}`);
+export const getStoreStatus = () => apiGet('/api/v1/store/status');

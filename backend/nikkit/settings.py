@@ -31,6 +31,7 @@ INSTALLED_APPS = [
     "corsheaders",
     # local
     "apps.core",
+    "apps.menu",
 ]
 
 MIDDLEWARE = [

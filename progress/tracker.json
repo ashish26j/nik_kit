@@ -1,7 +1,7 @@
 {
   "project": "Nik_kiT",
   "updated_at": "2026-07-04",
-  "current_phase": "P0",
+  "current_phase": "P1",
   "notes": "Single source of truth for phases/steps (WCAS-style). Contracts live in docs/contracts/.",
   "phases": [
     {
@@ -18,7 +18,20 @@
         { "id": "P0.5", "name": "Expo app (SDK 57) boots + reaches backend — verified as WEB sim over loopback (localhost:6060 → localhost:6061 → 200). .claude/launch.json 'web' config added.", "status": "done" }
       ]
     },
-    { "id": "P1", "name": "Menu + recipes (M02/M03/M04)", "gate": "admin authors; user browses Parathas/Snacks/Sweets", "status": "todo", "steps": [] },
+    {
+      "id": "P1", "name": "Menu + recipes (M02/M03/M04)", "branch": "P1_APP_MENU",
+      "gate": "admin authors; user browses Parathas/Snacks/Sweets",
+      "status": "done",
+      "note": "Authoring via Django admin (interim; custom console = M09). Verified via Expo web over loopback.",
+      "steps": [
+        { "id": "P1.1", "name": "menu app: Section/Recipe/RecipeImage/CustomizationGroup/Option/RecipeCustomization models + migration", "status": "done" },
+        { "id": "P1.2", "name": "Django admin registered (owner authoring) + seeded superuser 'nik'", "status": "done" },
+        { "id": "P1.3", "name": "M02 public browse API: /sections, /sections/{slug}/recipes, /recipes/{id} (customization embedded), /store/status (stub)", "status": "done" },
+        { "id": "P1.4", "name": "seed_menu: 3 sections + 7 recipes + 2 customization groups", "status": "done" },
+        { "id": "P1.5", "name": "Expo browse UI: React Navigation, Home (sections/cards, UNAVAILABLE greyed) + Recipe detail (customization)", "status": "done" },
+        { "id": "P1.6", "name": "verified via Expo web (loopback): browse → detail → customization renders", "status": "done" }
+      ]
+    },
     { "id": "P2", "name": "Customization + cart + place order (M04/M05)", "gate": "order reaches PLACED", "status": "todo", "steps": [] },
     { "id": "P3", "name": "UPI payment cycle (M06/M07/M08)", "gate": "proof upload → confirm → ACCEPTED; stage notifications", "status": "todo", "steps": [] },
     { "id": "P4", "name": "Admin console + ratings + closures (M09/M10)", "gate": "owner runs kitchen end-to-end", "status": "todo", "steps": [] },

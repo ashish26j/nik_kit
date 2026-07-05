@@ -48,6 +48,12 @@ cd nik_kit
 git init
 git remote add origin https://github.com/ashish26j/nik_kit.git
 
+# Repo-LOCAL identity (never --global) — required for any project under wiz4/,
+# because the machine's global gitconfig defaults to a corporate identity.
+git config user.email "wiz4hostdomains@gmail.com"
+git config user.name  "ashish26j"
+# verify it's local: git config --show-origin --get user.email  → file:.git/config
+
 # --- finishing a phase (example: P0) ---
 git checkout -b P0_INFRA          # (first phase; later phases branch from prev)
 git add -A
