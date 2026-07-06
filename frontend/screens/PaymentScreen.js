@@ -2,6 +2,7 @@
 import { useEffect, useState } from 'react';
 import {
   ActivityIndicator,
+  Image,
   Platform,
   Pressable,
   ScrollView,
@@ -64,19 +65,14 @@ export default function PaymentScreen({ route, navigation }) {
 
   return (
     <ScrollView style={styles.screen} contentContainerStyle={{ padding: 20, alignItems: 'center' }}>
-      <Text style={styles.amount}>₹{info.amount}</Text>
-      <Text style={styles.sub}>Scan &amp; pay via any UPI app</Text>
-
-      <View style={styles.qrBox}>
-        <QRCode value={info.qr_payload} size={200} backgroundColor="#ffffff" color="#1b1108" />
-      </View>
-      <Text style={styles.upi}>{info.upi_id}</Text>
-
-      <View style={styles.steps}>
-        <Text style={styles.stepTxt}>1 · Pay the amount in your UPI app</Text>
-        <Text style={styles.stepTxt}>2 · Upload the payment screenshot below</Text>
-        <Text style={styles.stepTxt}>3 · We confirm &amp; start your order</Text>
-      </View>
+      {info.qr_image_url ? (
+        <Image source={{ uri: info.qr_image_url }} style={styles.qrImg} resizeMode="contain" />
+      ) : (
+        <View style={styles.qrBox}>
+          <QRCode value={info.qr_payload} size={220} backgroundColor="#ffffff" color="#1b1108" />
+        </View>
+      )}
+      <Text style={styles.caption}>Scan with UPI app to Pay</Text>
 
       {!!error && <Text style={styles.error}>{error}</Text>}
 
@@ -94,12 +90,9 @@ function Center({ children }) {
 const styles = StyleSheet.create({
   screen: { flex: 1, backgroundColor: theme.bg },
   center: { alignItems: 'center', justifyContent: 'center', padding: 24 },
-  amount: { color: theme.accent, fontSize: 40, fontWeight: '800', marginTop: 8 },
-  sub: { color: theme.muted, fontSize: 14, marginTop: 4 },
-  qrBox: { backgroundColor: '#fff', padding: 16, borderRadius: 16, marginTop: 22 },
-  upi: { color: theme.text, fontSize: 15, fontWeight: '700', marginTop: 14 },
-  steps: { alignSelf: 'stretch', backgroundColor: theme.card, borderColor: theme.border, borderWidth: 1, borderRadius: 14, padding: 16, marginTop: 24, gap: 8 },
-  stepTxt: { color: theme.muted, fontSize: 14 },
+  qrBox: { backgroundColor: '#fff', padding: 16, borderRadius: 16, marginTop: 24 },
+  qrImg: { width: 300, height: 540, marginTop: 8, borderRadius: 16 },
+  caption: { color: theme.text, fontSize: 17, fontWeight: '700', marginTop: 12, textAlign: 'center' },
   upload: { marginTop: 24, backgroundColor: theme.accent, borderRadius: 14, paddingVertical: 16, paddingHorizontal: 24, alignSelf: 'stretch', alignItems: 'center' },
   uploadTxt: { color: '#2a1400', fontSize: 16, fontWeight: '800' },
   error: { color: theme.bad, textAlign: 'center', marginTop: 14 },

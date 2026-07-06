@@ -4,6 +4,7 @@ Cart is identified by an opaque `cart_key` the client holds (header `X-Cart-Key`
 or body/query `cart_key`) — works for web/mobile without cookies. Anon can build a
 cart; checkout requires a client token (M01).
 """
+import os
 import secrets
 
 from django.conf import settings
@@ -213,10 +214,18 @@ def payment_info(request, pk):
     order = get_object_or_404(Order, pk=pk, client=request.user)
     intent = order.payment_intent
     proof = order.proofs.filter(is_current=True).first()
+
+    # Prefer the real business UPI QR image if it's been placed in media.
+    qr_image_url = None
+    rel = settings.BUSINESS_UPI_QR_MEDIA
+    if rel and os.path.exists(os.path.join(settings.MEDIA_ROOT, rel)):
+        qr_image_url = request.build_absolute_uri(settings.MEDIA_URL + rel)
+
     return Response({
         "upi_id": intent.upi_id,
         "amount": str(intent.amount),
         "qr_payload": intent.qr_payload,
+        "qr_image_url": qr_image_url,
         "order_status": order.status,
         "proof": {"decision": proof.decision} if proof else None,
     })

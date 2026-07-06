@@ -91,8 +91,8 @@ TIME_ZONE = "Asia/Kolkata"
 USE_I18N = True
 USE_TZ = True
 
-STATIC_URL = "static/"
-MEDIA_URL = "media/"
+STATIC_URL = "/static/"
+MEDIA_URL = "/media/"
 MEDIA_ROOT = BASE_DIR / "media"
 
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
@@ -117,5 +117,8 @@ CORS_ALLOW_HEADERS = (*default_headers, "x-cart-key")
 # Manual UPI: the business UPI id shown in the QR, and where owner pings go.
 BUSINESS_UPI_ID = env("BUSINESS_UPI_ID", default="nikkit@upi")
 BUSINESS_CONTACT_EMAIL = env("BUSINESS_CONTACT_EMAIL", default="owner@nikkit.local")
+# Real business UPI QR image, relative to MEDIA_ROOT (git-ignored — place your own).
+# When present, the app shows this; otherwise it falls back to a generated QR.
+BUSINESS_UPI_QR_MEDIA = env("BUSINESS_UPI_QR_MEDIA", default="business/upi-qr.jpeg")
 # Dev: emails print to the container console. Swap for SMTP/WhatsApp later (M08 seam).
 EMAIL_BACKEND = env("EMAIL_BACKEND", default="django.core.mail.backends.console.EmailBackend")
