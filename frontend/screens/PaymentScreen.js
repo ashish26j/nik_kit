@@ -91,7 +91,7 @@ const styles = StyleSheet.create({
   screen: { flex: 1, backgroundColor: theme.bg },
   center: { alignItems: 'center', justifyContent: 'center', padding: 24 },
   qrBox: { backgroundColor: '#fff', padding: 16, borderRadius: 16, marginTop: 24 },
-  qrImg: { width: 300, height: 540, marginTop: 8, borderRadius: 16 },
+  qrImg: { width: 260, height: 260, marginTop: 24, borderRadius: 12, backgroundColor: '#fff' },
   caption: { color: theme.text, fontSize: 17, fontWeight: '700', marginTop: 12, textAlign: 'center' },
   upload: { marginTop: 24, backgroundColor: theme.accent, borderRadius: 14, paddingVertical: 16, paddingHorizontal: 24, alignSelf: 'stretch', alignItems: 'center' },
   uploadTxt: { color: '#2a1400', fontSize: 16, fontWeight: '800' },
