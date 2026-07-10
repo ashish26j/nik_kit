@@ -9,7 +9,7 @@ import { theme } from '../theme';
 
 const STAGES = ['Order placed', 'Order accepted', 'In preparation', 'Ready to pick up', 'Order completed'];
 
-export default function TrackingScreen({ route }) {
+export default function TrackingScreen({ route, navigation }) {
   const { orderId } = route.params;
   const [data, setData] = useState(null);
   const [error, setError] = useState(null);
@@ -54,6 +54,12 @@ export default function TrackingScreen({ route }) {
         })}
       </View>
 
+      {data.status === 'COMPLETED' && (
+        <Pressable style={styles.rate} onPress={() => navigation.navigate('Rating', { orderId })}>
+          <Text style={styles.rateTxt}>★ Rate your order</Text>
+        </Pressable>
+      )}
+
       <Pressable style={styles.refresh} onPress={load}>
         <Text style={styles.refreshTxt}>Refresh</Text>
       </Pressable>
@@ -75,7 +81,9 @@ const styles = StyleSheet.create({
   stageTxt: { color: theme.muted, fontSize: 16 },
   stageDone: { color: theme.text, fontWeight: '700' },
   stageActive: { color: theme.accent, fontWeight: '800' },
-  refresh: { marginTop: 28, alignSelf: 'flex-start', backgroundColor: theme.card, borderColor: theme.border, borderWidth: 1, borderRadius: 999, paddingHorizontal: 22, paddingVertical: 10 },
+  rate: { marginTop: 28, backgroundColor: theme.accent, borderRadius: 14, paddingVertical: 16, alignItems: 'center' },
+  rateTxt: { color: '#2a1400', fontSize: 16, fontWeight: '800' },
+  refresh: { marginTop: 16, alignSelf: 'flex-start', backgroundColor: theme.card, borderColor: theme.border, borderWidth: 1, borderRadius: 999, paddingHorizontal: 22, paddingVertical: 10 },
   refreshTxt: { color: theme.text, fontWeight: '800' },
   error: { color: theme.bad, textAlign: 'center', padding: 24 },
 });

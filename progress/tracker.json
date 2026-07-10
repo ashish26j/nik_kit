@@ -1,7 +1,7 @@
 {
   "project": "Nik_kiT",
   "updated_at": "2026-07-04",
-  "current_phase": "P3",
+  "current_phase": "P4",
   "notes": "Single source of truth for phases/steps (WCAS-style). Contracts live in docs/contracts/. Phase gate: all applicable tests in tests/ must pass (python3 tests/run_tests.py P<n>), numbered TEST_P<n>_T<NN>.",
   "phases": [
     {
@@ -60,7 +60,18 @@
         { "id": "P3.7", "name": "TEST_P3_T01..T10 green + full suite 26/26; QR+tracking verified via web", "status": "done" }
       ]
     },
-    { "id": "P4", "name": "Admin console + ratings + closures (M09/M10)", "gate": "owner runs kitchen end-to-end", "status": "todo", "steps": [] },
+    {
+      "id": "P4", "name": "Admin console + ratings + closures (M09/M10)", "branch": "P4_ADMIN",
+      "gate": "owner runs kitchen end-to-end; closures block checkout; customers rate completed orders",
+      "status": "in_progress",
+      "note": "Owner console = Django admin (extended with order actions, closures, ratings). M09 closures + M10 ratings done & verified via web. Remaining optional: a dedicated custom console UI (deferred to P5 polish).",
+      "steps": [
+        { "id": "P4.1", "name": "M09 apps.business: BusinessClosure + store_status + /admin/closures; checkout STORE_CLOSED gate; Home closed-banner", "status": "done" },
+        { "id": "P4.2", "name": "M10 apps.ratings: Rating (1-5★ + <=100 note on COMPLETED order) + client rate/get/patch + admin list/summary; Rating screen + Tracking 'Rate' button", "status": "done" },
+        { "id": "P4.3", "name": "TEST_P4_T01..T13 (closures + ratings); full suite 39/39; banner + rating flow verified via web", "status": "done" },
+        { "id": "P4.4", "name": "(optional) dedicated custom admin console UI — deferred to P5", "status": "todo" }
+      ]
+    },
     { "id": "P5", "name": "Web (browser) polish + real Expo web build in ui", "gate": "web parity", "status": "todo", "steps": [] },
     { "id": "P6", "name": "EAS build → Play Store (iOS later)", "gate": "installable Android app", "status": "todo", "steps": [] }
   ]

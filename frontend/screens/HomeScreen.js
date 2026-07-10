@@ -11,12 +11,13 @@ import {
   View,
 } from 'react-native';
 
-import { getRecipes, getSections } from '../config/api';
+import { getRecipes, getSections, getStoreStatus } from '../config/api';
 import { theme } from '../theme';
 
 export default function HomeScreen({ navigation }) {
   const [sections, setSections] = useState([]);
   const [bySection, setBySection] = useState({});
+  const [store, setStore] = useState(null); // { is_open, message, reopens_on }
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
@@ -24,7 +25,8 @@ export default function HomeScreen({ navigation }) {
     setLoading(true);
     setError(null);
     try {
-      const secs = await getSections();
+      const [secs, status] = await Promise.all([getSections(), getStoreStatus()]);
+      setStore(status);
       const map = {};
       await Promise.all(
         secs.map(async (s) => {
@@ -69,6 +71,17 @@ export default function HomeScreen({ navigation }) {
           <Text style={styles.cartBtnTxt}>🛒 Cart</Text>
         </Pressable>
       </View>
+
+      {store && !store.is_open && (
+        <View style={styles.closedBanner}>
+          <Text style={styles.closedTitle}>🚫 We're closed right now</Text>
+          <Text style={styles.closedMsg}>
+            {store.message || 'Ordering is paused.'}
+            {store.reopens_on ? `  ·  Reopens ${store.reopens_on}` : ''}
+          </Text>
+          <Text style={styles.closedSub}>You can still browse the menu.</Text>
+        </View>
+      )}
 
       {sections.map((s) => (
         <View key={s.id} style={styles.section}>
@@ -122,6 +135,10 @@ const styles = StyleSheet.create({
   cartBtnTxt: { color: theme.text, fontWeight: '800', fontSize: 13 },
   logo: { color: theme.text, fontSize: 34, fontWeight: '800' },
   tagline: { color: theme.accent, fontSize: 13, fontWeight: '700', letterSpacing: 2, marginTop: 4 },
+  closedBanner: { marginHorizontal: 16, marginTop: 4, backgroundColor: '#3a1512', borderColor: theme.bad, borderWidth: 1, borderRadius: 14, padding: 14 },
+  closedTitle: { color: theme.bad, fontSize: 16, fontWeight: '800' },
+  closedMsg: { color: theme.text, fontSize: 14, marginTop: 4, fontWeight: '600' },
+  closedSub: { color: theme.muted, fontSize: 12, marginTop: 6 },
   section: { paddingHorizontal: 16, marginTop: 18 },
   sectionTitle: { color: theme.text, fontSize: 20, fontWeight: '800', marginBottom: 10, marginLeft: 4 },
   card: {

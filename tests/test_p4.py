@@ -10,7 +10,7 @@ would wrongly block the P2/P3 checkout tests on the next run.
 import datetime
 import time
 
-from lib import bearer, get_json, post, request, test
+from lib import PNG_1x1, bearer, get_json, patch, post, post_file, request, test
 
 ADMIN_USER, ADMIN_PASS = "nik", "nikadmin123"
 
@@ -121,3 +121,85 @@ def bad_range():
     admin = _admin()
     st, b = post("/api/v1/admin/closures", {"start_date": _day(5), "end_date": _day(2)}, headers=bearer(admin))
     assert st == 400, (st, b)
+
+
+# --- M10 ratings -------------------------------------------------------------
+def _place_order():
+    """Register a client + place an order. Returns (token, order_id)."""
+    ph = "+9155" + str(int(time.time() * 1000))[-8:]
+    _s, reg = post("/api/v1/auth/register", {"first_name": "Rate", "email": "rate@ex.com", "phone": ph})
+    tok = reg["token"]
+    recs = get_json("/api/v1/sections/parathas/recipes")
+    rid = next(r["id"] for r in recs if r["name"] == "Aloo Paratha")
+    d = get_json(f"/api/v1/recipes/{rid}")
+    sp = next(g for g in d["customization"] if g["select_type"] == "SINGLE")["options"][0]["id"]
+    _s, cart = post("/api/v1/cart/items", {"recipe_id": rid, "selected_options": [sp]})
+    _s, order = post("/api/v1/orders", {"cart_key": cart["cart_key"]}, headers=bearer(tok))
+    return tok, order["id"]
+
+
+def _completed_order():
+    """A client with a fully COMPLETED order, ready to rate."""
+    tok, oid = _place_order()
+    post_file(f"/api/v1/orders/{oid}/payment/proof", "image", "p.png", PNG_1x1, headers=bearer(tok))
+    admin = bearer(_admin())
+    post(f"/api/v1/admin/orders/{oid}/payment/confirm", {}, headers=admin)  # → ACCEPTED
+    for nxt in ("PREPARING", "READY_FOR_PICKUP", "COMPLETED"):
+        post(f"/api/v1/admin/orders/{oid}/advance", {"to": nxt}, headers=admin)
+    return tok, oid
+
+
+@test("TEST_P4_T08", "Cannot rate an order that isn't completed (409)")
+def rate_requires_completed():
+    tok, oid = _place_order()  # still PLACED
+    st, b = post(f"/api/v1/orders/{oid}/rating", {"stars": 5}, headers=bearer(tok))
+    assert st == 409 and b["error"]["code"] == "STATE_CONFLICT", (st, b)
+
+
+@test("TEST_P4_T09", "Rate a completed order (201) and read it back")
+def rate_completed():
+    tok, oid = _completed_order()
+    st, b = post(f"/api/v1/orders/{oid}/rating", {"stars": 5, "note": "Loved it"}, headers=bearer(tok))
+    assert st == 201 and b["stars"] == 5 and b["note"] == "Loved it", (st, b)
+    st2, g = request("GET", f"/api/v1/orders/{oid}/rating", headers=bearer(tok))
+    assert st2 == 200 and g["stars"] == 5, (st2, g)
+
+
+@test("TEST_P4_T10", "Reject stars out of 1–5 and note over 100 chars (400)")
+def rate_validation():
+    tok, oid = _completed_order()
+    for bad in ({"stars": 0}, {"stars": 6}, {"stars": 3, "note": "x" * 101}):
+        st, b = post(f"/api/v1/orders/{oid}/rating", bad, headers=bearer(tok))
+        assert st == 400, (bad, st, b)
+
+
+@test("TEST_P4_T11", "One rating per order: second POST 409; PATCH updates")
+def rate_one_then_patch():
+    tok, oid = _completed_order()
+    post(f"/api/v1/orders/{oid}/rating", {"stars": 4}, headers=bearer(tok))
+    st, _b = post(f"/api/v1/orders/{oid}/rating", {"stars": 5}, headers=bearer(tok))
+    assert st == 409, st
+    st2, b2 = patch(f"/api/v1/orders/{oid}/rating", {"stars": 2, "note": "changed"}, headers=bearer(tok))
+    assert st2 == 200 and b2["stars"] == 2, (st2, b2)
+
+
+@test("TEST_P4_T12", "Admin summary + list reflect submitted ratings")
+def admin_summary():
+    tok, oid = _completed_order()
+    post(f"/api/v1/orders/{oid}/rating", {"stars": 5}, headers=bearer(tok))
+    admin = bearer(_admin())
+    st, s = request("GET", "/api/v1/admin/ratings/summary", headers=admin)
+    assert st == 200 and s["count"] >= 1 and s["avg"] is not None, (st, s)
+    st2, rows = request("GET", "/api/v1/admin/ratings", headers=admin)
+    assert st2 == 200 and any(r["order_id"] == oid for r in rows), (st2, rows)
+
+
+@test("TEST_P4_T13", "Rating is own-only; admin endpoints need an admin token")
+def rate_auth():
+    tok, oid = _completed_order()
+    ph = "+9153" + str(int(time.time() * 1000))[-8:]
+    _s, other = post("/api/v1/auth/register", {"first_name": "O", "email": "o@ex.com", "phone": ph})
+    st, _b = post(f"/api/v1/orders/{oid}/rating", {"stars": 5}, headers=bearer(other["token"]))
+    assert st in (403, 404), st  # not the owner
+    st2, _b2 = request("GET", "/api/v1/admin/ratings")  # no token
+    assert st2 in (401, 403), st2

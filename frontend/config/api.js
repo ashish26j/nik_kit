@@ -83,6 +83,14 @@ export const getPaymentInfo = (orderId, token) =>
 export const getTracking = (orderId, token) =>
   apiRequest('GET', `/api/v1/orders/${orderId}/tracking`, { token });
 
+// --- Rating (M10) ---
+export const getRating = (orderId, token) =>
+  apiRequest('GET', `/api/v1/orders/${orderId}/rating`, { token });
+export const submitRating = (orderId, token, body) =>
+  apiRequest('POST', `/api/v1/orders/${orderId}/rating`, { body, token });
+export const updateRating = (orderId, token, body) =>
+  apiRequest('PATCH', `/api/v1/orders/${orderId}/rating`, { body, token });
+
 // Multipart proof upload — let the platform set the multipart boundary itself.
 export async function uploadProof(orderId, token, formData) {
   const res = await fetch(`${API_BASE_URL}/api/v1/orders/${orderId}/payment/proof`, {

@@ -8,6 +8,7 @@ import CheckoutScreen from './screens/CheckoutScreen';
 import HomeScreen from './screens/HomeScreen';
 import OrderPlacedScreen from './screens/OrderPlacedScreen';
 import PaymentScreen from './screens/PaymentScreen';
+import RatingScreen from './screens/RatingScreen';
 import RecipeDetailScreen from './screens/RecipeDetailScreen';
 import TrackingScreen from './screens/TrackingScreen';
 import { theme } from './theme';
@@ -41,6 +42,7 @@ export default function App() {
         />
         <Stack.Screen name="Payment" component={PaymentScreen} options={{ title: 'Pay by UPI' }} />
         <Stack.Screen name="Tracking" component={TrackingScreen} options={{ title: 'Track order' }} />
+        <Stack.Screen name="Rating" component={RatingScreen} options={{ title: 'Rate order' }} />
       </Stack.Navigator>
     </NavigationContainer>
   );
