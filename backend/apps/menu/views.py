@@ -39,10 +39,3 @@ def recipe_detail(request, pk):
         Recipe.objects.exclude(display_status=Recipe.Display.HIDDEN), pk=pk
     )
     return Response(RecipeDetailSerializer(recipe, context={"request": request}).data)
-
-
-@api_view(["GET"])
-@permission_classes([AllowAny])
-def store_status(request):
-    """P1 stub — real business closures (open/closed banner) arrive with M09/P4."""
-    return Response({"is_open": True, "message": None, "reopens_on": None})

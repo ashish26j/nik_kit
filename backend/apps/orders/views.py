@@ -21,6 +21,7 @@ from rest_framework.response import Response
 
 from apps.accounts.auth import AdminTokenAuthentication, ClientTokenAuthentication
 from apps.accounts.permissions import IsAdmin, IsClient
+from apps.business.services import is_open as store_is_open
 from apps.menu.models import Recipe
 from apps.notifications.services import notify
 
@@ -160,7 +161,9 @@ def orders_root(request):
     items = list(cart.items.select_related("recipe").all())
     if not items:
         return err("VALIDATION_ERROR", "cart is empty", 400)
-    # store open check is a P1 stub (always open); real closures = M09/P4.
+    # M09: block checkout while the business is closed (browsing/cart stay open).
+    if not store_is_open():
+        return err("STORE_CLOSED", "the shop is currently closed", 409)
     for it in items:
         if it.recipe.display_status != Recipe.Display.AVAILABLE:
             return err("RECIPE_UNAVAILABLE",
