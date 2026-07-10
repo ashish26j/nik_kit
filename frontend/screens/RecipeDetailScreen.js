@@ -3,6 +3,7 @@ import { useEffect, useMemo, useState } from 'react';
 import {
   ActivityIndicator,
   Image,
+  Linking,
   Pressable,
   ScrollView,
   StyleSheet,
@@ -117,6 +118,13 @@ export default function RecipeDetailScreen({ route, navigation }) {
       </View>
       {!!recipe.description && <Text style={styles.desc}>{recipe.description}</Text>}
 
+      {recipe.chef_style && (
+        <Pressable style={styles.chefLink} onPress={() => Linking.openURL(recipe.chef_style.url)}>
+          <Text style={styles.chefLinkTxt}>📸  Check Chef style of making</Text>
+          <Text style={styles.chefLinkArrow}>↗</Text>
+        </Pressable>
+      )}
+
       {recipe.customization?.length > 0 && <Text style={styles.makeItYours}>Make it yours</Text>}
       {recipe.customization?.map((g) => (
         <View key={g.group_id} style={styles.group}>
@@ -188,6 +196,9 @@ const styles = StyleSheet.create({
   chip: { color: theme.bg, backgroundColor: theme.accent, fontSize: 11, fontWeight: '800', borderRadius: 8, paddingHorizontal: 8, paddingVertical: 3, overflow: 'hidden' },
   badge: { color: theme.bad, fontSize: 11, fontWeight: '800', borderColor: theme.bad, borderWidth: 1, borderRadius: 8, paddingHorizontal: 8, paddingVertical: 3 },
   desc: { color: theme.muted, fontSize: 15, lineHeight: 22, marginTop: 14 },
+  chefLink: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginTop: 18, backgroundColor: theme.card, borderColor: theme.accent, borderWidth: 1, borderRadius: 14, paddingVertical: 14, paddingHorizontal: 16 },
+  chefLinkTxt: { color: theme.accent, fontSize: 15, fontWeight: '800' },
+  chefLinkArrow: { color: theme.accent, fontSize: 18, fontWeight: '800' },
   makeItYours: { color: theme.text, fontSize: 18, fontWeight: '800', marginTop: 26, marginBottom: 8 },
   group: { backgroundColor: theme.card, borderColor: theme.border, borderWidth: 1, borderRadius: 14, padding: 14, marginBottom: 12 },
   groupName: { color: theme.text, fontSize: 15, fontWeight: '700', marginBottom: 8 },

@@ -24,6 +24,7 @@
 | [M09](M09-admin-console.md) | Admin console | Owner's single control surface |
 | [M10](M10-rating-feedback.md) | Rating & feedback | Customer 1–5★ + ≤100-char note |
 | *(later)* M11 | Healthiness engine | ON HOLD — auto star score (not in these contracts) |
+| [M12](M12-chef-social.md) | Chef profile & social | About-Chef page + per-recipe "Check Chef style" (Instagram) |
 
 ---
 

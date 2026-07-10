@@ -54,6 +54,8 @@ All writes require **`IsAdmin`** (M01). Deny by default.
 | `description` | text | long "few more info about recipe" |
 | `is_sweet` | bool | default false; Sweets excluded from healthiness later |
 | `display_status` | enum `AVAILABLE`\|`UNAVAILABLE`\|`HIDDEN` | default `AVAILABLE`. **UNAVAILABLE** = shown in menu but **greyed / B&W image** + "Not available" badge, **not orderable**. **HIDDEN** = blocked from the public menu entirely. Derived `is_available` bool = (`display_status == AVAILABLE`) |
+| `chef_style_platform` | enum `INSTAGRAM` | default `INSTAGRAM`; which platform the post is on (M12 `SocialLink`) |
+| `chef_style_url` | URL, blank | link to the chef's post/reel for **this dish**; when set, M02 detail shows a **"Check Chef style of making"** link (feature A, see [M12](M12-chef-social.md)) |
 | `created_at`/`updated_at` | datetime | |
 
 **`RecipeImage`**
@@ -77,7 +79,8 @@ All writes require **`IsAdmin`** (M01). Deny by default.
 - `GET /api/v1/admin/recipes?section={slug}` — list (incl. unavailable).
 - `POST /api/v1/admin/recipes` — `{ section_id, name, price, description, is_sweet }`.
 - `PATCH /api/v1/admin/recipes/{id}` — any field incl. `display_status`
-  (`AVAILABLE` / `UNAVAILABLE` / `HIDDEN`).
+  (`AVAILABLE` / `UNAVAILABLE` / `HIDDEN`) and the **chef-style link**
+  (`chef_style_platform` + `chef_style_url`).
 - `DELETE /api/v1/admin/recipes/{id}` — soft-delete if referenced by past orders.
 - `POST /api/v1/admin/recipes/{id}/images` — `multipart` image upload.
 - `DELETE /api/v1/admin/recipes/{id}/images/{imageId}`.
@@ -101,6 +104,9 @@ All writes require **`IsAdmin`** (M01). Deny by default.
 - **R7** `display_status` drives visibility: `AVAILABLE` (normal, orderable),
   `UNAVAILABLE` (visible but greyed/B&W + "Not available", **M05 refuses to add it to
   cart**), `HIDDEN` (absent from public browse). Admin always sees all three.
+- **R8** `chef_style_url` is **optional** per recipe (feature A). When set, M02 detail
+  exposes it and the app shows **"Check Chef style of making"** → opens that post.
+  Platform is admin-governed (`INSTAGRAM` only in v1, per [M12](M12-chef-social.md) R1).
 
 ## 7. States
 

@@ -116,6 +116,9 @@ own cart/orders/data).
 - **The photo sells the food** — visual, appetizing, modern; catchy "foody vibe".
 - **Owner-authored menu** — Nik adds/edits any recipe (price, images, description,
   customization) without a developer.
+- **The chef is part of the brand** — an **About Chef** page and per-recipe **"Check
+  Chef style of making"** links to her cooking posts (Instagram) turn a transaction into
+  a relationship.
 - **Honest manual payments** — a trust-based UPI cycle with an explicit owner
   confirmation gate, not a black-box gateway.
 - **One codebase, everywhere** — the same app is a website *and* a phone app.
@@ -152,7 +155,8 @@ Explore-first browsing · light checkout registration · owner-authored menu &
 recipes · per-item customization · cart & ordering · manual UPI cycle with owner
 confirmation · **order-tracking engine (5-stage lifecycle + per-stage notifications)**
 · email notifications · **post-order rating (≤5★ + ≤100-char feedback)** · admin
-console (incl. **business-closed dates** & **recipe display states**) · web + Android.
+console (incl. **business-closed dates** & **recipe display states**) · **chef social
+presence (About-Chef page + per-recipe "Check Chef style" → Instagram)** · web + Android.
 
 **Deliberately later (seams reserved, not built):**
 Healthiness star engine (savoury only) · WhatsApp live notifications · iOS ·

@@ -77,6 +77,7 @@ needed to render the "make it yours" screen.
 { "id": 10, "section": "Parathas", "name": "Aloo Paratha", "price": "60.00",
   "description": "Stuffed potato flatbread…", "images": ["/media/…1.jpg","…2.jpg"],
   "is_sweet": false,
+  "chef_style": { "platform": "INSTAGRAM", "url": "https://instagram.com/p/…" } | null,
   "customization": [ /* M04 group shape */ ] }
 ```
 Errors: `404 NOT_FOUND` (unknown or inactive recipe).
@@ -89,6 +90,9 @@ Errors: `404 NOT_FOUND` (unknown or inactive recipe).
 - **R3** Prices/images/description shown are exactly M03's stored values (no
   transformation).
 - **R4** Recipe detail embeds M04 customization so the client screen is one call.
+- **R4a** Recipe detail includes `chef_style` (platform + url) when the recipe has one
+  set (M03 R8 / [M12](M12-chef-social.md)), else `null`; the app renders "Check Chef
+  style of making" only when present.
 - **R5** Endpoints are cache-friendly (GET, public) — safe to CDN later.
 
 ## 7. States

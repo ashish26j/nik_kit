@@ -40,6 +40,9 @@ export const getRecipes = (slug) => apiGet(`/api/v1/sections/${slug}/recipes`);
 export const getRecipe = (id) => apiGet(`/api/v1/recipes/${id}`);
 export const getStoreStatus = () => apiGet('/api/v1/store/status');
 
+// --- Chef & social (M12) ---
+export const getChef = () => apiGet('/api/v1/chef');
+
 // --- Generic request (POST/PATCH/DELETE) with token + cart-key headers ---
 export async function apiRequest(method, path, { body, token, cartKey } = {}) {
   const headers = { 'Content-Type': 'application/json' };

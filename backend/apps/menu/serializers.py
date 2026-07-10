@@ -54,6 +54,7 @@ class RecipeDetailSerializer(serializers.ModelSerializer):
     section = serializers.CharField(source="section.name", read_only=True)
     images = serializers.SerializerMethodField()
     is_available = serializers.BooleanField(read_only=True)
+    chef_style = serializers.SerializerMethodField()
     customization = serializers.SerializerMethodField()
 
     class Meta:
@@ -68,8 +69,15 @@ class RecipeDetailSerializer(serializers.ModelSerializer):
             "is_sweet",
             "display_status",
             "is_available",
+            "chef_style",
             "customization",
         ]
+
+    def get_chef_style(self, obj):
+        # M02 R4a — present only when the recipe has a chef-style link set.
+        if obj.chef_style_url:
+            return {"platform": obj.chef_style_platform, "url": obj.chef_style_url}
+        return None
 
     def get_images(self, obj):
         request = self.context.get("request")

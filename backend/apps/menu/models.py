@@ -86,6 +86,11 @@ class Recipe(models.Model):
     display_status = models.CharField(
         max_length=12, choices=Display.choices, default=Display.AVAILABLE
     )
+    # M12 feature A — link to the chef's post/reel for this dish ("Check Chef style").
+    chef_style_platform = models.CharField(
+        max_length=12, default="INSTAGRAM", blank=True
+    )
+    chef_style_url = models.URLField(blank=True)
     customization_groups = models.ManyToManyField(
         CustomizationGroup,
         through="RecipeCustomization",

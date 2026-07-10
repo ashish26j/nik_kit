@@ -1,7 +1,7 @@
 {
   "project": "Nik_kiT",
   "updated_at": "2026-07-04",
-  "current_phase": "P4",
+  "current_phase": "P5",
   "notes": "Single source of truth for phases/steps (WCAS-style). Contracts live in docs/contracts/. Phase gate: all applicable tests in tests/ must pass (python3 tests/run_tests.py P<n>), numbered TEST_P<n>_T<NN>.",
   "phases": [
     {
@@ -63,7 +63,7 @@
     {
       "id": "P4", "name": "Admin console + ratings + closures (M09/M10)", "branch": "P4_ADMIN",
       "gate": "owner runs kitchen end-to-end; closures block checkout; customers rate completed orders",
-      "status": "in_progress",
+      "status": "done",
       "note": "Owner console = Django admin (extended with order actions, closures, ratings). M09 closures + M10 ratings done & verified via web. Remaining optional: a dedicated custom console UI (deferred to P5 polish).",
       "steps": [
         { "id": "P4.1", "name": "M09 apps.business: BusinessClosure + store_status + /admin/closures; checkout STORE_CLOSED gate; Home closed-banner", "status": "done" },
@@ -72,7 +72,19 @@
         { "id": "P4.4", "name": "(optional) dedicated custom admin console UI — deferred to P5", "status": "todo" }
       ]
     },
-    { "id": "P5", "name": "Web (browser) polish + real Expo web build in ui", "gate": "web parity", "status": "todo", "steps": [] },
-    { "id": "P6", "name": "EAS build → Play Store (iOS later)", "gate": "installable Android app", "status": "todo", "steps": [] }
+    {
+      "id": "P5", "name": "Chef & Social (M12) — About-Chef page + per-recipe 'Check Chef style'",
+      "gate": "About-Chef page live (bio + Instagram); recipes link to the chef's posts",
+      "status": "done", "branch": "P5_CHEF",
+      "note": "Contracts done (docs/contracts/M12 + M03/M02). Instagram only (bstvaranasi), platform enum extensible. Owner edits chef profile + per-recipe link via Django admin. Verified via web loopback.",
+      "steps": [
+        { "id": "P5.1", "name": "M12 backend: apps.chef — ChefProfile singleton + SocialLink; GET /chef; Django admin edit; seed_chef (Niketa + Instagram bstvaranasi)", "status": "done" },
+        { "id": "P5.2", "name": "M03/M02: Recipe.chef_style_platform + chef_style_url; recipe detail returns chef_style (null when unset)", "status": "done" },
+        { "id": "P5.3", "name": "Expo: About-Chef screen (bio + Instagram icon) + 'Check Chef style of making' link on recipe detail; Home 'Meet the Chef' entry", "status": "done" },
+        { "id": "P5.4", "name": "TEST_P5_T01..T04; full suite 43/43; About-Chef + recipe link verified via web", "status": "done" }
+      ]
+    },
+    { "id": "P6", "name": "Web (browser) polish + real Expo web build in ui container; production hardening", "gate": "web parity + hardening (HTTPS, DEBUG off, ALLOWED_HOSTS, /admin lockdown, admin 2FA)", "status": "todo", "steps": [] },
+    { "id": "P7", "name": "EAS build → Play Store (iOS later)", "gate": "installable Android app", "status": "todo", "steps": [] }
   ]
 }
