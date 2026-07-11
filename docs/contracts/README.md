@@ -25,6 +25,7 @@
 | [M10](M10-rating-feedback.md) | Rating & feedback | Customer 1–5★ + ≤100-char note |
 | *(later)* M11 | Healthiness engine | ON HOLD — auto star score (not in these contracts) |
 | [M12](M12-chef-social.md) | Chef profile & social | About-Chef page + per-recipe "Check Chef style" (Instagram) |
+| [M13](M13-client-account.md) | Client account area | *(planned P7)* My Orders + Profile + Email-OTP restore |
 
 ---
 

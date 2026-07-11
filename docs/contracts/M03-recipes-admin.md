@@ -56,6 +56,7 @@ All writes require **`IsAdmin`** (M01). Deny by default.
 | `display_status` | enum `AVAILABLE`\|`UNAVAILABLE`\|`HIDDEN` | default `AVAILABLE`. **UNAVAILABLE** = shown in menu but **greyed / B&W image** + "Not available" badge, **not orderable**. **HIDDEN** = blocked from the public menu entirely. Derived `is_available` bool = (`display_status == AVAILABLE`) |
 | `chef_style_platform` | enum `INSTAGRAM` | default `INSTAGRAM`; which platform the post is on (M12 `SocialLink`) |
 | `chef_style_url` | URL, blank | link to the chef's post/reel for **this dish**; when set, M02 detail shows a **"Check Chef style of making"** link (feature A, see [M12](M12-chef-social.md)) |
+| `ordering_enabled` | bool | default `true`. Admin per-recipe toggle for the **Order now / Order for later** modes (see [M05](M05-cart-order.md)). When `false`, the recipe shows **no ordering-mode options** (not orderable). *(Confirm interaction with `display_status` at build time — both gate orderability.)* |
 | `created_at`/`updated_at` | datetime | |
 
 **`RecipeImage`**
@@ -107,6 +108,9 @@ All writes require **`IsAdmin`** (M01). Deny by default.
 - **R8** `chef_style_url` is **optional** per recipe (feature A). When set, M02 detail
   exposes it and the app shows **"Check Chef style of making"** → opens that post.
   Platform is admin-governed (`INSTAGRAM` only in v1, per [M12](M12-chef-social.md) R1).
+- **R9** `ordering_enabled` (admin toggle) gates the **Order now / Order for later**
+  modes (M05). ON → both modes offered; OFF → no ordering-mode options for the recipe.
+  A cart may offer **Order for later** only if **all** its items are `ordering_enabled`.
 
 ## 7. States
 

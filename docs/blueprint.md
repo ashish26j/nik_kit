@@ -156,7 +156,10 @@ recipes · per-item customization · cart & ordering · manual UPI cycle with ow
 confirmation · **order-tracking engine (5-stage lifecycle + per-stage notifications)**
 · email notifications · **post-order rating (≤5★ + ≤100-char feedback)** · admin
 console (incl. **business-closed dates** & **recipe display states**) · **chef social
-presence (About-Chef page + per-recipe "Check Chef style" → Instagram)** · web + Android.
+presence (About-Chef page + per-recipe "Check Chef style" → Instagram)** ·
+**order modes (Order now ~1h / Order for later, admin-toggled per recipe)** ·
+**client account area (My Orders + Profile, passwordless + Email-OTP restore)** ·
+web + Android.
 
 **Deliberately later (seams reserved, not built):**
 Healthiness star engine (savoury only) · WhatsApp live notifications · iOS ·

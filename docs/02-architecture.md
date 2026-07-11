@@ -230,6 +230,7 @@ Decomposition of Nik_kiT into named, single-responsibility modules (WCAS Stage 2
 | **M10** | Rating & feedback | Customer-submitted rating on a completed order: 1–5 **stars** + optional ≤100-char note. *Distinct from M11* — this is user satisfaction, not auto healthiness. |
 | *(later)* | **M11** Healthiness engine | ON HOLD — **auto-computed** star rating from ingredients/prep (excl. Sweets); not customer-entered |
 | **M12** | Chef profile & social | About-Chef page (bio + social icons) + per-recipe "Check Chef style of making" link. Instagram only in v1 (`bstvaranasi`), platform enum extensible |
+| **M13** | Client account area | *(planned P7)* My Orders (history + status) + Profile (view/edit) + Email-OTP restore; token-gated, passwordless. Also: order **modes** (Order now / Order for later) live in M03 + M05 |
 
 ---
 
@@ -259,8 +260,10 @@ Blueprint (vision, one page)
 | **P3** | UPI payment cycle end-to-end (proof upload → email confirm → `PAYMENT_CONFIRMED`) |
 | **P4** | Admin console + customer ratings (M10) + WhatsApp notifications wired |
 | **P5** | **Chef & Social (M12)** — About-Chef page + per-recipe "Check Chef style of making" (Instagram) |
-| **P6** | Web (browser) polish + PWA/parity; production hardening |
-| **P7** | EAS build → Play Store; (iOS later) |
+| **P6** | **Order modes** — Order now (ready ~1h) / Order for later (scheduled); per-recipe admin toggle (M03 + M05) |
+| **P7** | **Client account area + Email-OTP** — My Orders + Profile + passwordless account restore (M13 + M01) |
+| **P8** | Web (browser) polish + PWA/parity; production hardening |
+| **P9** | EAS build → Play Store; (iOS later) |
 | *(later)* | Healthiness engine (M11); Learn-from-Chef bookings (feature C, unscoped) |
 
 ---

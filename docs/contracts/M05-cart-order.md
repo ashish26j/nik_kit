@@ -56,6 +56,9 @@ multi-outlet, saved carts across devices, partial cancellation.
 | `status` | enum | M07 states; starts `PLACED` |
 | `subtotal` / `total` | DECIMAL(8,2) | server-computed |
 | `fulfilment` | enum `PICKUP` | v1 fixed |
+| `fulfil_mode` | enum `ORDER_NOW`\|`ORDER_FOR_LATER` | default `ORDER_NOW`; chosen **once per order** (whole cart) |
+| `ready_by` | datetime | for `ORDER_NOW` = `created_at + 1h` (fresh); shown to the customer |
+| `scheduled_for` | datetime, null | for `ORDER_FOR_LATER` = the customer-picked future time |
 | `created_at` / `updated_at` | datetime | |
 
 **`OrderItem`** (immutable snapshot)
@@ -107,6 +110,16 @@ Errors: `400` (empty cart / invalid options), `401` (no client token), `409`
 - **R5** An anon cart merges into the client on registration (match by session_key).
 - **R6** Cancellation is only legal before acceptance; post-`ACCEPTED` is admin-only.
 - **R7** `code` is unique, human-friendly, generated at creation.
+- **R8 (order modes)** The order carries **one** `fulfil_mode` for the whole cart
+  (decision: per-order, not per-item):
+  - `ORDER_NOW` → `ready_by = created_at + 1h` (fresh). Always available for orderable
+    items.
+  - `ORDER_FOR_LATER` → requires a `scheduled_for` **in the future** (≥ a min lead time,
+    e.g. 1h) and offered **only if every cart item is `ordering_enabled`** (M03 R9).
+- **R9** A `scheduled_for` must fall in an **open** window — it is rejected if the
+  business is closed then (M09 closures) or outside any future business hours.
+- **R10** Items whose recipe is not `ordering_enabled` (M03 R9) cannot be added/ordered
+  (like `display_status ≠ AVAILABLE`).
 
 ## 7. States
 

@@ -84,7 +84,31 @@
         { "id": "P5.4", "name": "TEST_P5_T01..T04; full suite 43/43; About-Chef + recipe link verified via web", "status": "done" }
       ]
     },
-    { "id": "P6", "name": "Web (browser) polish + real Expo web build in ui container; production hardening", "gate": "web parity + hardening (HTTPS, DEBUG off, ALLOWED_HOSTS, /admin lockdown, admin 2FA)", "status": "todo", "steps": [] },
-    { "id": "P7", "name": "EAS build → Play Store (iOS later)", "gate": "installable Android app", "status": "todo", "steps": [] }
+    {
+      "id": "P6", "name": "Order modes — Order now / Order for later (M03 + M05)",
+      "gate": "customer picks Now (ready ~1hr) or Later (scheduled); admin toggle per recipe",
+      "status": "todo",
+      "note": "DECISIONS (confirmed): (1) mode is PER-ORDER — one Now/Later choice + one time for the whole cart. (2) per-recipe admin toggle enables BOTH modes; if OFF the recipe shows no ordering-mode options (not orderable) — CONFIRM interaction with display_status at dev time. Order now → ready_by = created_at + 1h (fresh). Order for later → customer picks scheduled_for (future). Contracts: M03 recipe toggle + M05 order fulfil_mode/ready_by/scheduled_for.",
+      "steps": [
+        { "id": "P6.1", "name": "M03: Recipe.ordering_enabled toggle (admin) — gates the Now/Later options", "status": "todo" },
+        { "id": "P6.2", "name": "M05: Order.fulfil_mode (ORDER_NOW|ORDER_FOR_LATER) + ready_by (now+1h) + scheduled_for; per-order; Later only if all items ordering_enabled; respect M09 closures + min lead time", "status": "todo" },
+        { "id": "P6.3", "name": "Expo: mode selector at checkout (Now / Later + schedule picker); order + tracking show the chosen time", "status": "todo" },
+        { "id": "P6.4", "name": "TEST_P6_* (mode set, ready_by, scheduled validation, toggle gating); verify via web", "status": "todo" }
+      ]
+    },
+    {
+      "id": "P7", "name": "Client Account area + Email-OTP (M13 + M01)",
+      "gate": "token-gated My Orders (history+status) + Profile (view/edit); Email-OTP restores account on a new device",
+      "status": "todo",
+      "note": "No passwords. Same-device = token is the session (safe). New device = Email OTP to restore (closes the unverified-identity privacy hole). Backend: M01 PATCH /auth/me + Email OTP (request/verify). M13 = client account area (composes M01/M05/M07). Frontend: 👤 entry on Home → My Orders + Profile + OTP restore.",
+      "steps": [
+        { "id": "P7.1", "name": "M01: PATCH /auth/me (update name/email; phone=identity) + Email OTP endpoints (request→email code, verify→issue/restore token)", "status": "todo" },
+        { "id": "P7.2", "name": "M13: client Account area — My Orders (GET /orders + tracking) + Profile (GET/PATCH me); token-gated", "status": "todo" },
+        { "id": "P7.3", "name": "Expo: Account screens (My Orders list+status, Profile view/edit, 'restore by email → OTP' on new device); 👤 Home entry", "status": "todo" },
+        { "id": "P7.4", "name": "TEST_P7_* (profile update, OTP request/verify, order history own-only, restore flow); verify via web", "status": "todo" }
+      ]
+    },
+    { "id": "P8", "name": "Web (browser) polish + real Expo web build in ui container; production hardening", "gate": "web parity + hardening (HTTPS, DEBUG off, ALLOWED_HOSTS, /admin lockdown, admin 2FA)", "status": "todo", "steps": [] },
+    { "id": "P9", "name": "EAS build → Play Store (iOS later)", "gate": "installable Android app", "status": "todo", "steps": [] }
   ]
 }

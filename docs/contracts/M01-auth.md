@@ -21,8 +21,12 @@ module reads. Keep the customer **explore-first**: no identity to browse; captur
 - Admin login (seeded staff account, username + password) → admin token/session.
 - DRF permission classes: `IsPublicRead`, `IsClient`, `IsAdmin`, `IsOwnerOrAdmin`.
 
-**Out (later):** client passwords/OTP verification, social login, multi-staff roles &
-granular admin permissions, account deletion self-service, email/phone verification.
+**Planned (P7, see [M13](M13-client-account.md)):** `PATCH /auth/me` (profile update)
+and **Email-OTP** verification — the passwordless way to restore an account on a new
+device.
+
+**Out (later):** client passwords, social login, multi-staff roles & granular admin
+permissions, account deletion self-service, SMS/phone verification.
 
 ## 3. Actors & authorization
 
@@ -80,6 +84,17 @@ Errors: `VALIDATION_ERROR` (missing/invalid field).
 ### `GET /api/v1/auth/me` — client or admin
 Returns the caller's own profile (from token). `401 AUTH_REQUIRED` if no token.
 
+### `PATCH /api/v1/auth/me` — client *(planned P7)*
+Update own `first_name` / `email`. **Phone is the identity key** and isn't changed here.
+
+### `POST /api/v1/auth/otp/request` — public *(planned P7)*
+`{ "email": "…" }` → emails a short code. Used to **restore** an account on a new device
+(no password). Rate-limited.
+
+### `POST /api/v1/auth/otp/verify` — public *(planned P7)*
+`{ "email": "…", "code": "123456" }` → on a valid, unexpired code, issues a client token
+for that account (same client → same order history).
+
 ### `POST /api/v1/auth/admin/login` — public → admin
 ```json
 { "username": "nik", "password": "••••" }  →  { "token": "…", "role": "ADMIN" }
@@ -100,6 +115,10 @@ Invalidates the presented token.
 - **R5** Admin actions (menu writes, payment confirm, order-state advance, view-all)
   require `IsAdmin`. Deny by default otherwise.
 - **R6** No password is ever stored or required for a Client in v1.
+- **R7 (planned P7)** **Email OTP** is the only cross-device recovery: request → emailed
+  code → verify → token for that account. Codes are short-lived + rate-limited. An
+  **unverified** identity must never expose another client's orders (closes the
+  "type any phone/email to see their orders" hole).
 
 ## 7. States
 
