@@ -125,3 +125,6 @@ BUSINESS_CONTACT_EMAIL = env("BUSINESS_CONTACT_EMAIL", default="owner@nikkit.loc
 BUSINESS_UPI_QR_MEDIA = env("BUSINESS_UPI_QR_MEDIA", default="business/upi-qr.jpeg")
 # Dev: emails print to the container console. Swap for SMTP/WhatsApp later (M08 seam).
 EMAIL_BACKEND = env("EMAIL_BACKEND", default="django.core.mail.backends.console.EmailBackend")
+
+# P6 order modes — minimum lead time (minutes) for an "Order for later" schedule.
+MIN_SCHEDULE_LEAD_MINUTES = env.int("MIN_SCHEDULE_LEAD_MINUTES", default=60)

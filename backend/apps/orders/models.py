@@ -58,12 +58,22 @@ class Order(models.Model):
         COMPLETED = "COMPLETED", "Completed"
         CANCELLED = "CANCELLED", "Cancelled"
 
+    class FulfilMode(models.TextChoices):
+        ORDER_NOW = "ORDER_NOW", "Order now"
+        ORDER_FOR_LATER = "ORDER_FOR_LATER", "Order for later"
+
     code = models.CharField(max_length=12, unique=True)
     client = models.ForeignKey(Client, on_delete=models.PROTECT, related_name="orders")
     status = models.CharField(max_length=20, choices=Status.choices, default=Status.PLACED)
     subtotal = models.DecimalField(max_digits=10, decimal_places=2)
     total = models.DecimalField(max_digits=10, decimal_places=2)
     fulfilment = models.CharField(max_length=12, default="PICKUP")
+    # P6 order modes — chosen once per order (whole cart).
+    fulfil_mode = models.CharField(
+        max_length=16, choices=FulfilMode.choices, default=FulfilMode.ORDER_NOW
+    )
+    ready_by = models.DateTimeField(null=True, blank=True)       # NOW = created+1h
+    scheduled_for = models.DateTimeField(null=True, blank=True)  # LATER = customer time
     note = models.CharField(max_length=200, blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)

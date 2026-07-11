@@ -72,6 +72,9 @@ class Command(BaseCommand):
             RecipeCustomization.objects.get_or_create(recipe=recipe, group=spice, defaults={"sort_order": 1})
             RecipeCustomization.objects.get_or_create(recipe=recipe, group=addons, defaults={"sort_order": 2})
 
+        # Demo: one available item that's display-only (not orderable) — P6 toggle.
+        Recipe.objects.filter(name="Kachori").update(ordering_enabled=False)
+
         self.stdout.write(self.style.SUCCESS(
             f"Seeded: {Section.objects.count()} sections, {Recipe.objects.count()} recipes, "
             f"{CustomizationGroup.objects.count()} groups."

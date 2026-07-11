@@ -87,13 +87,13 @@
     {
       "id": "P6", "name": "Order modes — Order now / Order for later (M03 + M05)",
       "gate": "customer picks Now (ready ~1hr) or Later (scheduled); admin toggle per recipe",
-      "status": "todo",
+      "status": "done", "branch": "P6_ORDER_MODES",
       "note": "DECISIONS (confirmed): (1) mode is PER-ORDER — one Now/Later choice + one time for the whole cart. (2) per-recipe admin toggle enables BOTH modes; if OFF the recipe shows no ordering-mode options (not orderable) — CONFIRM interaction with display_status at dev time. Order now → ready_by = created_at + 1h (fresh). Order for later → customer picks scheduled_for (future). Contracts: M03 recipe toggle + M05 order fulfil_mode/ready_by/scheduled_for.",
       "steps": [
-        { "id": "P6.1", "name": "M03: Recipe.ordering_enabled toggle (admin) — gates the Now/Later options", "status": "todo" },
-        { "id": "P6.2", "name": "M05: Order.fulfil_mode (ORDER_NOW|ORDER_FOR_LATER) + ready_by (now+1h) + scheduled_for; per-order; Later only if all items ordering_enabled; respect M09 closures + min lead time", "status": "todo" },
-        { "id": "P6.3", "name": "Expo: mode selector at checkout (Now / Later + schedule picker); order + tracking show the chosen time", "status": "todo" },
-        { "id": "P6.4", "name": "TEST_P6_* (mode set, ready_by, scheduled validation, toggle gating); verify via web", "status": "todo" }
+        { "id": "P6.1", "name": "M03: Recipe.ordering_enabled toggle + is_orderable (=AVAILABLE and ordering_enabled); seed sets Kachori display-only", "status": "done" },
+        { "id": "P6.2", "name": "M05: Order.fulfil_mode + ready_by (now+1h) + scheduled_for; checkout validates lead time (MIN_SCHEDULE_LEAD_MINUTES=60) + M09 closures on scheduled date; non-orderable blocked", "status": "done" },
+        { "id": "P6.3", "name": "Expo: checkout mode selector (Order now / Order for later + preset slot chips); OrderPlaced shows ready_by/scheduled_for; recipe detail hides order UI when not orderable", "status": "done" },
+        { "id": "P6.4", "name": "TEST_P6_T01..T07; full suite 56/56; verified via web (mode selector, scheduled order)", "status": "done" }
       ]
     },
     {

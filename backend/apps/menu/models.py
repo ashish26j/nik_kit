@@ -91,6 +91,9 @@ class Recipe(models.Model):
         max_length=12, default="INSTAGRAM", blank=True
     )
     chef_style_url = models.URLField(blank=True)
+    # M05 order modes (P6) — admin toggle: when False the recipe is not orderable
+    # (no Order now / Order for later options). Orderable = AVAILABLE and ordering_enabled.
+    ordering_enabled = models.BooleanField(default=True)
     customization_groups = models.ManyToManyField(
         CustomizationGroup,
         through="RecipeCustomization",
@@ -106,6 +109,10 @@ class Recipe(models.Model):
     @property
     def is_available(self):
         return self.display_status == self.Display.AVAILABLE
+
+    @property
+    def is_orderable(self):
+        return self.is_available and self.ordering_enabled
 
     def __str__(self):
         return self.name

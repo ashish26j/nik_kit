@@ -1,7 +1,7 @@
 // Checkout (M01 light registration + M05 place order).
 // If not yet registered, capture First name / Email / Phone (no password), then
 // place the order → PLACED.
-import { useEffect, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import {
   ActivityIndicator,
   Pressable,
@@ -16,12 +16,41 @@ import { placeOrder, registerClient } from '../config/api';
 import { KEYS, store } from '../storage';
 import { theme } from '../theme';
 
+const DAYS = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+
+// A few upcoming pickup slots (11am/2pm/5pm/8pm over the next days), > ~1h ahead.
+// Sent as naive local ISO; the backend validates lead time + business closures.
+function upcomingSlots() {
+  const now = new Date();
+  const times = [11, 14, 17, 20];
+  const out = [];
+  for (let day = 0; day < 4 && out.length < 6; day += 1) {
+    for (const h of times) {
+      const s = new Date(now);
+      s.setDate(now.getDate() + day);
+      s.setHours(h, 0, 0, 0);
+      if (s.getTime() > now.getTime() + 65 * 60 * 1000) {
+        const p = (n) => String(n).padStart(2, '0');
+        const iso = `${s.getFullYear()}-${p(s.getMonth() + 1)}-${p(s.getDate())}T${p(h)}:00:00`;
+        const hr12 = ((h + 11) % 12) + 1;
+        const dayLabel = day === 0 ? 'Today' : day === 1 ? 'Tomorrow' : DAYS[s.getDay()];
+        out.push({ iso, label: `${dayLabel}, ${hr12}:00 ${h < 12 ? 'AM' : 'PM'}` });
+      }
+      if (out.length >= 6) break;
+    }
+  }
+  return out;
+}
+
 export default function CheckoutScreen({ navigation }) {
   const [token, setToken] = useState(null);
   const [ready, setReady] = useState(false);
   const [form, setForm] = useState({ first_name: '', email: '', phone: '' });
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState(null);
+  const [mode, setMode] = useState('ORDER_NOW');
+  const [slot, setSlot] = useState(null);
+  const slots = useMemo(() => upcomingSlots(), []);
 
   useEffect(() => {
     (async () => {
@@ -48,7 +77,11 @@ export default function CheckoutScreen({ navigation }) {
         setToken(t);
       }
       const cartKey = await store.get(KEYS.cartKey);
-      const order = await placeOrder(cartKey, t);
+      const extra =
+        mode === 'ORDER_FOR_LATER'
+          ? { fulfil_mode: mode, scheduled_for: slot?.iso }
+          : { fulfil_mode: mode };
+      const order = await placeOrder(cartKey, t, extra);
       await store.del(KEYS.cartKey); // order placed → cart consumed
       navigation.replace('OrderPlaced', { order });
     } catch (e) {
@@ -77,10 +110,42 @@ export default function CheckoutScreen({ navigation }) {
         </>
       )}
 
+      <Text style={styles.modeTitle}>When would you like it?</Text>
+      <View style={styles.modeRow}>
+        <Pressable style={[styles.modeBtn, mode === 'ORDER_NOW' && styles.modeOn]} onPress={() => setMode('ORDER_NOW')}>
+          <Text style={[styles.modeTxt, mode === 'ORDER_NOW' && styles.modeTxtOn]}>Order now</Text>
+          <Text style={styles.modeSub}>Fresh · ready in ~1 hour</Text>
+        </Pressable>
+        <Pressable style={[styles.modeBtn, mode === 'ORDER_FOR_LATER' && styles.modeOn]} onPress={() => setMode('ORDER_FOR_LATER')}>
+          <Text style={[styles.modeTxt, mode === 'ORDER_FOR_LATER' && styles.modeTxtOn]}>Order for later</Text>
+          <Text style={styles.modeSub}>Pick a time</Text>
+        </Pressable>
+      </View>
+
+      {mode === 'ORDER_FOR_LATER' && (
+        <View style={styles.slots}>
+          {slots.map((s) => (
+            <Pressable key={s.iso} style={[styles.slot, slot?.iso === s.iso && styles.slotOn]} onPress={() => setSlot(s)}>
+              <Text style={[styles.slotTxt, slot?.iso === s.iso && styles.slotTxtOn]}>{s.label}</Text>
+            </Pressable>
+          ))}
+        </View>
+      )}
+
       {!!error && <Text style={styles.error}>{error}</Text>}
 
-      <Pressable style={[styles.place, busy && { opacity: 0.6 }]} onPress={onPlace} disabled={busy}>
-        <Text style={styles.placeTxt}>{busy ? 'Placing…' : 'Place order'}</Text>
+      <Pressable
+        style={[styles.place, (busy || (mode === 'ORDER_FOR_LATER' && !slot)) && { opacity: 0.6 }]}
+        onPress={onPlace}
+        disabled={busy || (mode === 'ORDER_FOR_LATER' && !slot)}
+      >
+        <Text style={styles.placeTxt}>
+          {busy
+            ? 'Placing…'
+            : mode === 'ORDER_FOR_LATER'
+              ? slot ? `Schedule · ${slot.label}` : 'Pick a time above'
+              : 'Place order'}
+        </Text>
       </Pressable>
     </ScrollView>
   );
@@ -110,6 +175,18 @@ const styles = StyleSheet.create({
   label: { color: theme.text, fontSize: 13, fontWeight: '700', marginBottom: 6 },
   input: { backgroundColor: theme.card, borderColor: theme.border, borderWidth: 1, borderRadius: 12, color: theme.text, paddingHorizontal: 14, paddingVertical: 12, fontSize: 16 },
   error: { color: theme.bad, marginTop: 14 },
+  modeTitle: { color: theme.text, fontSize: 16, fontWeight: '800', marginTop: 24, marginBottom: 10 },
+  modeRow: { flexDirection: 'row', gap: 10 },
+  modeBtn: { flex: 1, backgroundColor: theme.card, borderColor: theme.border, borderWidth: 1, borderRadius: 14, padding: 14 },
+  modeOn: { borderColor: theme.accent, backgroundColor: theme.cardAlt },
+  modeTxt: { color: theme.text, fontSize: 15, fontWeight: '800' },
+  modeTxtOn: { color: theme.accent },
+  modeSub: { color: theme.muted, fontSize: 12, marginTop: 4 },
+  slots: { flexDirection: 'row', flexWrap: 'wrap', gap: 8, marginTop: 14 },
+  slot: { backgroundColor: theme.card, borderColor: theme.border, borderWidth: 1, borderRadius: 999, paddingHorizontal: 14, paddingVertical: 10 },
+  slotOn: { borderColor: theme.accent, backgroundColor: theme.accent },
+  slotTxt: { color: theme.text, fontWeight: '700', fontSize: 13 },
+  slotTxtOn: { color: '#2a1400' },
   place: { marginTop: 28, backgroundColor: theme.accent, borderRadius: 14, paddingVertical: 16, alignItems: 'center' },
   placeTxt: { color: '#2a1400', fontSize: 16, fontWeight: '800' },
 });

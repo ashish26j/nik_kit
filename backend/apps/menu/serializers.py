@@ -17,6 +17,7 @@ def _abs(request, url):
 class RecipeListSerializer(serializers.ModelSerializer):
     thumbnail = serializers.SerializerMethodField()
     is_available = serializers.BooleanField(read_only=True)
+    is_orderable = serializers.BooleanField(read_only=True)
 
     class Meta:
         model = Recipe
@@ -27,6 +28,7 @@ class RecipeListSerializer(serializers.ModelSerializer):
             "thumbnail",
             "display_status",
             "is_available",
+            "is_orderable",
             "is_sweet",
         ]
 
@@ -54,6 +56,7 @@ class RecipeDetailSerializer(serializers.ModelSerializer):
     section = serializers.CharField(source="section.name", read_only=True)
     images = serializers.SerializerMethodField()
     is_available = serializers.BooleanField(read_only=True)
+    is_orderable = serializers.BooleanField(read_only=True)
     chef_style = serializers.SerializerMethodField()
     customization = serializers.SerializerMethodField()
 
@@ -69,6 +72,7 @@ class RecipeDetailSerializer(serializers.ModelSerializer):
             "is_sweet",
             "display_status",
             "is_available",
+            "is_orderable",
             "chef_style",
             "customization",
         ]

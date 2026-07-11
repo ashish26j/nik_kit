@@ -1,7 +1,17 @@
-// Order placed (M05 → PLACED). Shows the code + status; lifecycle tracking = P3.
+// Order placed (M05 → PLACED). Shows the code + status + fulfilment time.
 import { ScrollView, Pressable, StyleSheet, Text, View } from 'react-native';
 
 import { theme } from '../theme';
+
+const DAYS = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+function fmt(iso) {
+  if (!iso) return '';
+  const d = new Date(iso);
+  const h = d.getHours();
+  const hr12 = ((h + 11) % 12) + 1;
+  const m = String(d.getMinutes()).padStart(2, '0');
+  return `${DAYS[d.getDay()]} ${hr12}:${m} ${h < 12 ? 'AM' : 'PM'}`;
+}
 
 export default function OrderPlacedScreen({ route, navigation }) {
   const { order } = route.params;
@@ -14,6 +24,12 @@ export default function OrderPlacedScreen({ route, navigation }) {
       <View style={styles.statusPill}>
         <Text style={styles.statusTxt}>{order.status}</Text>
       </View>
+
+      <Text style={styles.fulfil}>
+        {order.fulfil_mode === 'ORDER_FOR_LATER'
+          ? `🗓️  Scheduled for ${fmt(order.scheduled_for)}`
+          : `🍳  Fresh · ready by ${fmt(order.ready_by)}`}
+      </Text>
 
       <View style={styles.card}>
         {order.items.map((it, i) => (
@@ -48,6 +64,7 @@ const styles = StyleSheet.create({
   code: { color: theme.accent, fontSize: 20, fontWeight: '800', marginTop: 6, letterSpacing: 1 },
   statusPill: { marginTop: 12, backgroundColor: theme.card, borderColor: theme.border, borderWidth: 1, borderRadius: 999, paddingHorizontal: 16, paddingVertical: 6 },
   statusTxt: { color: theme.text, fontWeight: '800', letterSpacing: 1 },
+  fulfil: { color: theme.accent, fontSize: 14, fontWeight: '800', marginTop: 12 },
   card: { alignSelf: 'stretch', backgroundColor: theme.card, borderColor: theme.border, borderWidth: 1, borderRadius: 16, padding: 16, marginTop: 26 },
   row: { flexDirection: 'row', justifyContent: 'space-between', paddingVertical: 6 },
   itemName: { color: theme.text, fontSize: 15 },

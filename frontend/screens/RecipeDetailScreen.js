@@ -151,7 +151,7 @@ export default function RecipeDetailScreen({ route, navigation }) {
         </View>
       ))}
 
-      {!unavailable && (
+      {recipe.is_orderable ? (
         <>
           <View style={styles.qtyRow}>
             <Text style={styles.qtyLabel}>Quantity</Text>
@@ -174,6 +174,10 @@ export default function RecipeDetailScreen({ route, navigation }) {
             </Text>
           </Pressable>
         </>
+      ) : (
+        <Text style={styles.notOrderable}>
+          {unavailable ? 'Currently not available.' : 'Not available for online ordering right now.'}
+        </Text>
       )}
     </ScrollView>
   );
@@ -196,6 +200,7 @@ const styles = StyleSheet.create({
   chip: { color: theme.bg, backgroundColor: theme.accent, fontSize: 11, fontWeight: '800', borderRadius: 8, paddingHorizontal: 8, paddingVertical: 3, overflow: 'hidden' },
   badge: { color: theme.bad, fontSize: 11, fontWeight: '800', borderColor: theme.bad, borderWidth: 1, borderRadius: 8, paddingHorizontal: 8, paddingVertical: 3 },
   desc: { color: theme.muted, fontSize: 15, lineHeight: 22, marginTop: 14 },
+  notOrderable: { color: theme.muted, fontSize: 14, fontWeight: '700', marginTop: 24, textAlign: 'center' },
   chefLink: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginTop: 18, backgroundColor: theme.card, borderColor: theme.accent, borderWidth: 1, borderRadius: 14, paddingVertical: 14, paddingHorizontal: 16 },
   chefLinkTxt: { color: theme.accent, fontSize: 15, fontWeight: '800' },
   chefLinkArrow: { color: theme.accent, fontSize: 18, fontWeight: '800' },

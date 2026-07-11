@@ -6,10 +6,12 @@ cart; checkout requires a client token (M01).
 """
 import os
 import secrets
+from datetime import timedelta
 
 from django.conf import settings
 from django.shortcuts import get_object_or_404
 from django.utils import timezone
+from django.utils.dateparse import parse_datetime
 from rest_framework.decorators import (
     api_view,
     authentication_classes,
@@ -80,6 +82,9 @@ def serialize_order(order):
         "subtotal": str(order.subtotal),
         "total": str(order.total),
         "fulfilment": order.fulfilment,
+        "fulfil_mode": order.fulfil_mode,
+        "ready_by": order.ready_by.isoformat() if order.ready_by else None,
+        "scheduled_for": order.scheduled_for.isoformat() if order.scheduled_for else None,
         "note": order.note,
         "items": [{
             "recipe_name": i.recipe_name, "qty": i.qty,
@@ -96,8 +101,8 @@ def serialize_order(order):
 def cart_add(request):
     cart = _resolve_cart(request) or Cart.new()
     recipe = get_object_or_404(Recipe, pk=request.data.get("recipe_id"))
-    if recipe.display_status != Recipe.Display.AVAILABLE:
-        return err("RECIPE_UNAVAILABLE", f"{recipe.name} is not available", 409)
+    if not recipe.is_orderable:  # not AVAILABLE, or ordering_enabled off (M03 R9)
+        return err("RECIPE_UNAVAILABLE", f"{recipe.name} is not available for ordering", 409)
     try:
         unit, chosen = validate_and_price(recipe, request.data.get("selected_options"))
     except ValidationError as e:
@@ -161,19 +166,43 @@ def orders_root(request):
     items = list(cart.items.select_related("recipe").all())
     if not items:
         return err("VALIDATION_ERROR", "cart is empty", 400)
-    # M09: block checkout while the business is closed (browsing/cart stay open).
-    if not store_is_open():
-        return err("STORE_CLOSED", "the shop is currently closed", 409)
+    # Re-check every item is still orderable (M03 R9 + display_status).
     for it in items:
-        if it.recipe.display_status != Recipe.Display.AVAILABLE:
+        if not it.recipe.is_orderable:
             return err("RECIPE_UNAVAILABLE",
                        f"{it.recipe.name} is no longer available", 409)
+
+    # P6 — one fulfilment mode for the whole cart.
+    mode = request.data.get("fulfil_mode") or Order.FulfilMode.ORDER_NOW
+    now = timezone.now()
+    if mode == Order.FulfilMode.ORDER_NOW:
+        if not store_is_open():  # ordering now requires the shop open now
+            return err("STORE_CLOSED", "the shop is currently closed", 409)
+        ready_by, scheduled_for = now + timedelta(hours=1), None
+    elif mode == Order.FulfilMode.ORDER_FOR_LATER:
+        raw = request.data.get("scheduled_for")
+        if not raw:
+            return err("VALIDATION_ERROR", "scheduled_for is required for Order for later", 400)
+        sf = parse_datetime(raw)
+        if sf is None:
+            return err("VALIDATION_ERROR", "scheduled_for must be an ISO datetime", 400)
+        if timezone.is_naive(sf):
+            sf = timezone.make_aware(sf, timezone.get_current_timezone())
+        lead = settings.MIN_SCHEDULE_LEAD_MINUTES
+        if sf < now + timedelta(minutes=lead):
+            return err("VALIDATION_ERROR", f"schedule at least {lead} minutes ahead", 400)
+        if not store_is_open(timezone.localtime(sf).date()):  # must be open that day (M09)
+            return err("STORE_CLOSED", "the shop is closed on the selected date", 409)
+        ready_by, scheduled_for = sf, sf
+    else:
+        return err("VALIDATION_ERROR", "invalid fulfil_mode", 400)
 
     sub = cart.subtotal
     order = Order.objects.create(
         code=f"T{secrets.token_hex(4)}", client=request.user,  # temp (<=12), replaced below
         subtotal=sub, total=sub,
         fulfilment=(request.data.get("fulfilment") or "PICKUP"),
+        fulfil_mode=mode, ready_by=ready_by, scheduled_for=scheduled_for,
         note=(request.data.get("note") or "")[:200],
     )
     order.assign_code()
