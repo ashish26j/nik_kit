@@ -7,10 +7,12 @@ from rest_framework.decorators import (
 from rest_framework.permissions import AllowAny
 from rest_framework.response import Response
 
+from django.conf import settings
 from django.contrib.auth import authenticate
+from django.core.mail import send_mail
 
 from .auth import ClientTokenAuthentication
-from .models import AdminToken, Client, ClientToken
+from .models import AdminToken, Client, ClientToken, EmailOtp
 from .permissions import IsClient
 from .utils import normalize_phone
 
@@ -64,11 +66,85 @@ def register(request):
     return Response({"user": _client_payload(client), "token": token.token})
 
 
-@api_view(["GET"])
+@api_view(["GET", "PATCH"])
 @authentication_classes([ClientTokenAuthentication])
 @permission_classes([IsClient])
 def me(request):
-    return Response(_client_payload(request.user))
+    client = request.user
+    if request.method == "PATCH":
+        # Update first_name / email only; phone stays the identity (M01 R? / M13 R3).
+        if "first_name" in request.data:
+            client.first_name = (request.data.get("first_name") or "").strip()
+        if "email" in request.data:
+            email = (request.data.get("email") or "").strip()
+            if "@" not in email:
+                return Response(
+                    {"error": {"code": "VALIDATION_ERROR", "message": "valid email required"}},
+                    status=400,
+                )
+            client.email = email
+        if not client.first_name:
+            return Response(
+                {"error": {"code": "VALIDATION_ERROR", "message": "first_name required"}},
+                status=400,
+            )
+        client.save()
+    return Response(_client_payload(client))
+
+
+@api_view(["POST"])
+@permission_classes([AllowAny])
+def otp_request(request):
+    """Email a one-time code to restore an existing account on a new device."""
+    email = (request.data.get("email") or "").strip()
+    if "@" not in email:
+        return Response(
+            {"error": {"code": "VALIDATION_ERROR", "message": "valid email required"}}, status=400
+        )
+    client = Client.objects.filter(email=email).order_by("-created_at").first()
+    if not client:
+        return Response(
+            {"error": {"code": "NOT_FOUND", "message": "no account for this email"}}, status=404
+        )
+    otp = EmailOtp.issue(email)
+    send_mail(
+        subject="[Nik_kiT] Your login code",
+        message=f"Your Nik_kiT code is {otp.code} (valid 10 minutes).",
+        from_email="noreply@nikkit.local",
+        recipient_list=[email],
+        fail_silently=True,
+    )
+    body = {"sent": True}
+    if settings.DEBUG:  # dev convenience only — never returned when DEBUG=False
+        body["dev_code"] = otp.code
+    return Response(body)
+
+
+@api_view(["POST"])
+@permission_classes([AllowAny])
+def otp_verify(request):
+    """Verify the code → issue a client token for that account (restore)."""
+    email = (request.data.get("email") or "").strip()
+    code = (request.data.get("code") or "").strip()
+    otp = (
+        EmailOtp.objects.filter(email=email, code=code, used=False)
+        .order_by("-created_at")
+        .first()
+    )
+    if not otp or not otp.is_valid:
+        return Response(
+            {"error": {"code": "VALIDATION_ERROR", "message": "invalid or expired code"}},
+            status=400,
+        )
+    otp.used = True
+    otp.save(update_fields=["used"])
+    client = Client.objects.filter(email=email).order_by("-created_at").first()
+    if not client:
+        return Response(
+            {"error": {"code": "NOT_FOUND", "message": "no account"}}, status=404
+        )
+    token = ClientToken.issue(client)
+    return Response({"user": _client_payload(client), "token": token.token})
 
 
 @api_view(["POST"])

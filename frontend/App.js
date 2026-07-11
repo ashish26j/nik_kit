@@ -4,6 +4,7 @@ import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { StatusBar } from 'expo-status-bar';
 
 import AboutChefScreen from './screens/AboutChefScreen';
+import AccountScreen from './screens/AccountScreen';
 import CartScreen from './screens/CartScreen';
 import CheckoutScreen from './screens/CheckoutScreen';
 import HomeScreen from './screens/HomeScreen';
@@ -45,6 +46,7 @@ export default function App() {
         <Stack.Screen name="Tracking" component={TrackingScreen} options={{ title: 'Track order' }} />
         <Stack.Screen name="Rating" component={RatingScreen} options={{ title: 'Rate order' }} />
         <Stack.Screen name="AboutChef" component={AboutChefScreen} options={{ title: 'Meet the Chef' }} />
+        <Stack.Screen name="Account" component={AccountScreen} options={{ title: 'Account' }} />
       </Stack.Navigator>
     </NavigationContainer>
   );

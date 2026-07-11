@@ -43,6 +43,13 @@ export const getStoreStatus = () => apiGet('/api/v1/store/status');
 // --- Chef & social (M12) ---
 export const getChef = () => apiGet('/api/v1/chef');
 
+// --- Account area (M13 + M01): profile, orders, Email-OTP restore ---
+export const getMe = (token) => apiRequest('GET', '/api/v1/auth/me', { token });
+export const updateMe = (token, body) => apiRequest('PATCH', '/api/v1/auth/me', { body, token });
+export const getMyOrders = (token) => apiRequest('GET', '/api/v1/orders', { token });
+export const requestOtp = (email) => apiRequest('POST', '/api/v1/auth/otp/request', { body: { email } });
+export const verifyOtp = (email, code) => apiRequest('POST', '/api/v1/auth/otp/verify', { body: { email, code } });
+
 // --- Generic request (POST/PATCH/DELETE) with token + cart-key headers ---
 export async function apiRequest(method, path, { body, token, cartKey } = {}) {
   const headers = { 'Content-Type': 'application/json' };

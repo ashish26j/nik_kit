@@ -5,10 +5,13 @@ User for ADMIN/staff (it powers Django admin), and model the CUSTOMER as a separ
 lightweight `Client` with **no password** — phone is the identity. This kick-starts
 customers with zero auth overhead and needs no AUTH_USER_MODEL change.
 """
+import random
 import secrets
+from datetime import timedelta
 
 from django.conf import settings
 from django.db import models
+from django.utils import timezone
 
 
 class Client(models.Model):
@@ -42,6 +45,30 @@ class ClientToken(models.Model):
 
     def __str__(self):
         return f"token:{self.client.phone}"
+
+
+class EmailOtp(models.Model):
+    """One-time code emailed to restore a client account on a new device (M01 R7)."""
+
+    email = models.EmailField(db_index=True)
+    code = models.CharField(max_length=6)
+    used = models.BooleanField(default=False)
+    created_at = models.DateTimeField(auto_now_add=True)
+    expires_at = models.DateTimeField()
+
+    class Meta:
+        ordering = ["-created_at"]
+
+    @classmethod
+    def issue(cls, email, minutes=10):
+        code = f"{random.randint(0, 999999):06d}"
+        return cls.objects.create(
+            email=email, code=code, expires_at=timezone.now() + timedelta(minutes=minutes)
+        )
+
+    @property
+    def is_valid(self):
+        return (not self.used) and timezone.now() < self.expires_at
 
 
 class AdminToken(models.Model):

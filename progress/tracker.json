@@ -99,13 +99,13 @@
     {
       "id": "P7", "name": "Client Account area + Email-OTP (M13 + M01)",
       "gate": "token-gated My Orders (history+status) + Profile (view/edit); Email-OTP restores account on a new device",
-      "status": "todo",
-      "note": "No passwords. Same-device = token is the session (safe). New device = Email OTP to restore (closes the unverified-identity privacy hole). Backend: M01 PATCH /auth/me + Email OTP (request/verify). M13 = client account area (composes M01/M05/M07). Frontend: 👤 entry on Home → My Orders + Profile + OTP restore.",
+      "status": "done", "branch": "P7_ACCOUNT",
+      "note": "No passwords. Same-device = token is the session. New device = Email OTP restore (dev returns code in response only when DEBUG). Backend M01: PATCH /auth/me + EmailOtp + otp request/verify. M13 = client account screens. Verified: 6 tests + clean web bundle (user's own Metro on 6060 for live view).",
       "steps": [
-        { "id": "P7.1", "name": "M01: PATCH /auth/me (update name/email; phone=identity) + Email OTP endpoints (request→email code, verify→issue/restore token)", "status": "todo" },
-        { "id": "P7.2", "name": "M13: client Account area — My Orders (GET /orders + tracking) + Profile (GET/PATCH me); token-gated", "status": "todo" },
-        { "id": "P7.3", "name": "Expo: Account screens (My Orders list+status, Profile view/edit, 'restore by email → OTP' on new device); 👤 Home entry", "status": "todo" },
-        { "id": "P7.4", "name": "TEST_P7_* (profile update, OTP request/verify, order history own-only, restore flow); verify via web", "status": "todo" }
+        { "id": "P7.1", "name": "M01: PATCH /auth/me + EmailOtp model + /auth/otp/request (email code, dev_code when DEBUG) + /auth/otp/verify (restore token)", "status": "done" },
+        { "id": "P7.2", "name": "M13: client Account area composes GET /orders + tracking + GET/PATCH me; token-gated", "status": "done" },
+        { "id": "P7.3", "name": "Expo: AccountScreen (My Orders list+status chips, Profile view/edit, OTP restore-by-email); 👤 Home entry + nav route", "status": "done" },
+        { "id": "P7.4", "name": "TEST_P7_T01..T06; full suite 49/49; clean web bundle", "status": "done" }
       ]
     },
     { "id": "P8", "name": "Web (browser) polish + real Expo web build in ui container; production hardening", "gate": "web parity + hardening (HTTPS, DEBUG off, ALLOWED_HOSTS, /admin lockdown, admin 2FA)", "status": "todo", "steps": [] },
