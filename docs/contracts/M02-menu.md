@@ -77,6 +77,7 @@ needed to render the "make it yours" screen.
 { "id": 10, "section": "Parathas", "name": "Aloo Paratha", "price": "60.00",
   "description": "Stuffed potato flatbread…", "images": ["/media/…1.jpg","…2.jpg"],
   "is_sweet": false,
+  "default_accompaniment": "Pickle",  | ""  (included free side, shown as "Served with …")
   "chef_style": { "platform": "INSTAGRAM", "url": "https://instagram.com/p/…" } | null,
   "customization": [ /* M04 group shape */ ] }
 ```

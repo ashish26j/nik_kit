@@ -83,6 +83,9 @@ class Recipe(models.Model):
     is_sweet = models.BooleanField(
         default=False, help_text="Sweets skip healthiness scoring (M11)."
     )
+    # Included, free accompaniment shown as "Served with … (included)". Paid extras
+    # (e.g. Raita) are customization options (M04), not this field.
+    default_accompaniment = models.CharField(max_length=120, blank=True)
     display_status = models.CharField(
         max_length=12, choices=Display.choices, default=Display.AVAILABLE
     )

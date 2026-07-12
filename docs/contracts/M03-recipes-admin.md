@@ -53,6 +53,7 @@ All writes require **`IsAdmin`** (M01). Deny by default.
 | `price` | DECIMAL(8,2) | required, ≥ 0 |
 | `description` | text | long "few more info about recipe" |
 | `is_sweet` | bool | default false; Sweets excluded from healthiness later |
+| `default_accompaniment` | varchar(120), blank | **included, free** side shown as "Served with … (included)" (e.g. Parathas → Pickle; Samosa/Kachori → Hari & khatti-mithi chutney). Paid extras (e.g. Raita) are M04 add-ons, not this field |
 | `display_status` | enum `AVAILABLE`\|`UNAVAILABLE`\|`HIDDEN` | default `AVAILABLE`. **UNAVAILABLE** = shown in menu but **greyed / B&W image** + "Not available" badge, **not orderable**. **HIDDEN** = blocked from the public menu entirely. Derived `is_available` bool = (`display_status == AVAILABLE`) |
 | `chef_style_platform` | enum `INSTAGRAM` | default `INSTAGRAM`; which platform the post is on (M12 `SocialLink`) |
 | `chef_style_url` | URL, blank | link to the chef's post/reel for **this dish**; when set, M02 detail shows a **"Check Chef style of making"** link (feature A, see [M12](M12-chef-social.md)) |

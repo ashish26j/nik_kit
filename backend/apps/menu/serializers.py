@@ -70,6 +70,7 @@ class RecipeDetailSerializer(serializers.ModelSerializer):
             "description",
             "images",
             "is_sweet",
+            "default_accompaniment",
             "display_status",
             "is_available",
             "is_orderable",

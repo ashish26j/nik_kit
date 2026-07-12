@@ -62,7 +62,7 @@ class Command(BaseCommand):
             name="Add-ons",
             defaults={"kind": "INGREDIENT", "select_type": "MULTI", "is_required": False, "sort_order": 2},
         )
-        for label, delta in [("Extra butter", "10.00"), ("Cheese", "20.00")]:
+        for label, delta in [("Extra butter", "10.00"), ("Cheese", "20.00"), ("Raita", "40.00")]:
             CustomizationOption.objects.get_or_create(
                 group=addons, label=label, defaults={"price_delta": delta}
             )
@@ -71,6 +71,12 @@ class Command(BaseCommand):
         for recipe in Recipe.objects.filter(is_sweet=False):
             RecipeCustomization.objects.get_or_create(recipe=recipe, group=spice, defaults={"sort_order": 1})
             RecipeCustomization.objects.get_or_create(recipe=recipe, group=addons, defaults={"sort_order": 2})
+
+        # Included, free default accompaniments (shown as "Served with …").
+        Recipe.objects.filter(section__slug="parathas").update(default_accompaniment="Pickle")
+        Recipe.objects.filter(section__slug="snacks").update(
+            default_accompaniment="Hari & khatti-mithi chutney"
+        )
 
         # Demo: one available item that's display-only (not orderable) — P6 toggle.
         Recipe.objects.filter(name="Kachori").update(ordering_enabled=False)

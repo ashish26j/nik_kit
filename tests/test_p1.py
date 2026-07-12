@@ -58,3 +58,22 @@ def unknown_recipe_404():
 def admin_reachable():
     code = status_no_redirect(BASE_URL + "/admin/")
     assert code in (301, 302), f"expected redirect to login, got {code}"
+
+
+@test("TEST_P1_T08", "Included default accompaniments (pickle / chutney) on recipe detail")
+def default_accompaniment():
+    recs = get_json("/api/v1/sections/parathas/recipes")
+    aloo = get_json(f"/api/v1/recipes/{next(r['id'] for r in recs if r['name'] == 'Aloo Paratha')}")
+    assert aloo["default_accompaniment"] == "Pickle", aloo
+    snacks = get_json("/api/v1/sections/snacks/recipes")
+    samosa = get_json(f"/api/v1/recipes/{next(r['id'] for r in snacks if r['name'] == 'Samosa')}")
+    assert "chutney" in samosa["default_accompaniment"].lower(), samosa
+
+
+@test("TEST_P1_T09", "Raita (+40) is offered as an Add-ons customization option")
+def raita_addon():
+    recs = get_json("/api/v1/sections/parathas/recipes")
+    d = get_json(f"/api/v1/recipes/{next(r['id'] for r in recs if r['name'] == 'Aloo Paratha')}")
+    addons = next(g for g in d["customization"] if g["name"] == "Add-ons")
+    raita = next((o for o in addons["options"] if o["label"] == "Raita"), None)
+    assert raita and raita["price_delta"] == "40.00", addons

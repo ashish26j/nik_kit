@@ -15,10 +15,12 @@ catalog; customers pick from it.
 
 ## 2. Scope
 
-**In v1:** admin-authored **customization groups** (e.g. "Spice level", "Butter",
-"Ingredients") each with **options**; attach groups to recipes; single- or multi-
-select; optional per-option **price delta**; customer selections captured on cart/
-order lines.
+**In v1:** admin-authored **customization groups** (e.g. "Spice level", "Add-ons")
+each with **options**; attach groups to recipes; single- or multi-select; optional
+per-option **price delta**; customer selections captured on cart/order lines.
+Example paid add-ons in the "Add-ons" group: Extra butter (+₹10), Cheese (+₹20),
+**Raita (+₹40)**. *(Free, included sides — pickle, chutney — are the recipe's
+`default_accompaniment` field in M03, not a customization option.)*
 
 **Out (later):** conditional/nested options, per-option stock, free-text special
 requests, and any **healthiness weighting** of ingredients (that feeds M11 later).
