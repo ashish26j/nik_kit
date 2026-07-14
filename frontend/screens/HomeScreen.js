@@ -3,13 +3,13 @@ import { useCallback, useState } from 'react';
 import { useFocusEffect } from '@react-navigation/native';
 import {
   ActivityIndicator,
-  Image,
   Pressable,
   ScrollView,
   StyleSheet,
   Text,
   View,
 } from 'react-native';
+import { Image } from 'expo-image';
 
 import { getRecipes, getSections, getStoreStatus } from '../config/api';
 import { theme } from '../theme';
@@ -115,7 +115,7 @@ function RecipeCard({ recipe, onPress }) {
     >
       <View style={styles.thumb}>
         {recipe.thumbnail ? (
-          <Image source={{ uri: recipe.thumbnail }} style={styles.thumbImg} />
+          <Image source={{ uri: recipe.thumbnail }} style={styles.thumbImg} contentFit="cover" transition={200} />
         ) : (
           <Text style={styles.thumbEmoji}>{recipe.is_sweet ? '🍬' : '🥘'}</Text>
         )}

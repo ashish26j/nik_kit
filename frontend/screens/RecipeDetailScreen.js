@@ -2,15 +2,17 @@
 import { useEffect, useMemo, useState } from 'react';
 import {
   ActivityIndicator,
-  Image,
   Linking,
+  Modal,
   Pressable,
   ScrollView,
   StyleSheet,
   Text,
   View,
 } from 'react-native';
+import { Image } from 'expo-image';
 
+import MediaCarousel from '../components/MediaCarousel';
 import { addToCart, getRecipe } from '../config/api';
 import { KEYS, store } from '../storage';
 import { theme } from '../theme';
@@ -22,6 +24,7 @@ export default function RecipeDetailScreen({ route, navigation }) {
   const [sel, setSel] = useState({}); // groupId -> optionId (SINGLE) | [ids] (MULTI)
   const [qty, setQty] = useState(1);
   const [adding, setAdding] = useState(false);
+  const [fullImage, setFullImage] = useState(null);
 
   useEffect(() => {
     getRecipe(id)
@@ -99,14 +102,13 @@ export default function RecipeDetailScreen({ route, navigation }) {
   };
 
   return (
+    <>
     <ScrollView style={styles.screen} contentContainerStyle={{ padding: 16, paddingBottom: 120 }}>
-      <View style={styles.hero}>
-        {recipe.images?.length ? (
-          <Image source={{ uri: recipe.images[0] }} style={styles.heroImg} />
-        ) : (
-          <Text style={styles.heroEmoji}>{recipe.is_sweet ? '🍬' : '🥘'}</Text>
-        )}
-      </View>
+      <MediaCarousel
+        media={recipe.media}
+        onOpenImage={setFullImage}
+        fallbackEmoji={recipe.is_sweet ? '🍬' : '🥘'}
+      />
 
       <View style={styles.titleRow}>
         <Text style={styles.name}>{recipe.name}</Text>
@@ -184,6 +186,14 @@ export default function RecipeDetailScreen({ route, navigation }) {
         </Text>
       )}
     </ScrollView>
+
+    <Modal visible={!!fullImage} transparent animationType="fade" onRequestClose={() => setFullImage(null)}>
+      <Pressable style={styles.fullBackdrop} onPress={() => setFullImage(null)}>
+        {!!fullImage && <Image source={{ uri: fullImage }} style={styles.fullImg} contentFit="contain" />}
+        <Text style={styles.fullClose}>✕  Tap anywhere to close</Text>
+      </Pressable>
+    </Modal>
+    </>
   );
 }
 
@@ -194,6 +204,9 @@ function Center({ children }) {
 const styles = StyleSheet.create({
   screen: { flex: 1, backgroundColor: theme.bg },
   center: { alignItems: 'center', justifyContent: 'center', padding: 24 },
+  fullBackdrop: { flex: 1, backgroundColor: 'rgba(0,0,0,0.94)', alignItems: 'center', justifyContent: 'center', padding: 12 },
+  fullImg: { width: '100%', height: '82%' },
+  fullClose: { color: '#fff', fontSize: 14, fontWeight: '800', marginTop: 16 },
   hero: { height: 180, borderRadius: 18, backgroundColor: theme.cardAlt, alignItems: 'center', justifyContent: 'center', overflow: 'hidden', marginBottom: 16 },
   heroImg: { width: '100%', height: '100%' },
   heroEmoji: { fontSize: 72 },

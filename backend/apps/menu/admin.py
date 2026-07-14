@@ -6,14 +6,15 @@ from .models import (
     CustomizationOption,
     Recipe,
     RecipeCustomization,
-    RecipeImage,
+    RecipeMedia,
     Section,
 )
 
 
-class RecipeImageInline(admin.TabularInline):
-    model = RecipeImage
+class RecipeMediaInline(admin.TabularInline):
+    model = RecipeMedia
     extra = 1
+    fields = ("kind", "file", "url", "caption", "sort_order")
 
 
 class RecipeCustomizationInline(admin.TabularInline):
@@ -40,7 +41,7 @@ class RecipeAdmin(admin.ModelAdmin):
     list_filter = ("section", "display_status", "is_sweet")
     list_editable = ("price", "display_status")
     search_fields = ("name", "description")
-    inlines = [RecipeImageInline, RecipeCustomizationInline]
+    inlines = [RecipeMediaInline, RecipeCustomizationInline]
 
 
 @admin.register(CustomizationGroup)

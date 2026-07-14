@@ -77,3 +77,25 @@ def raita_addon():
     addons = next(g for g in d["customization"] if g["name"] == "Add-ons")
     raita = next((o for o in addons["options"] if o["label"] == "Raita"), None)
     assert raita and raita["price_delta"] == "40.00", addons
+
+
+@test("TEST_P1_T10", "Recipe media gallery returns ordered items (images + video link)")
+def media_gallery():
+    recs = get_json("/api/v1/sections/parathas/recipes")
+    d = get_json(f"/api/v1/recipes/{next(r['id'] for r in recs if r['name'] == 'Aloo Paratha')}")
+    media = d["media"]
+    assert len(media) >= 2, media
+    kinds = {m["kind"] for m in media}
+    assert "IMAGE" in kinds and "VIDEO" in kinds, kinds
+    assert all(m["url"] for m in media), media
+
+
+@test("TEST_P1_T11", "Thumbnail = first image; a recipe without media has none")
+def thumbnail_from_media():
+    recs = get_json("/api/v1/sections/parathas/recipes")
+    aloo = next(r for r in recs if r["name"] == "Aloo Paratha")
+    gobi = next(r for r in recs if r["name"] == "Gobi Paratha")
+    assert aloo["thumbnail"], aloo
+    assert gobi["thumbnail"] is None, gobi
+    d = get_json(f"/api/v1/recipes/{gobi['id']}")
+    assert d["media"] == [], d

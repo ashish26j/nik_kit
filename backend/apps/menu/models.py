@@ -121,18 +121,34 @@ class Recipe(models.Model):
         return self.name
 
 
-class RecipeImage(models.Model):
-    """Ordered images for a recipe; first (sort_order=0) is the thumbnail. M03."""
+class RecipeMedia(models.Model):
+    """Ordered media gallery for a recipe (M03): images (in-app carousel + tap-to-full),
+    plus video/link items that open externally. First IMAGE is the card thumbnail.
+    """
 
-    recipe = models.ForeignKey(Recipe, on_delete=models.CASCADE, related_name="images")
-    file = models.ImageField(upload_to="recipes/")
+    class Kind(models.TextChoices):
+        IMAGE = "IMAGE", "Image"
+        VIDEO = "VIDEO", "Video (opens out)"
+        LINK = "LINK", "Link (opens out)"
+
+    recipe = models.ForeignKey(Recipe, on_delete=models.CASCADE, related_name="media")
+    kind = models.CharField(max_length=8, choices=Kind.choices, default=Kind.IMAGE)
+    file = models.ImageField(upload_to="recipes/", null=True, blank=True)  # uploaded image
+    url = models.URLField(blank=True)  # external image / video / link
+    caption = models.CharField(max_length=140, blank=True)
     sort_order = models.PositiveIntegerField(default=0)
 
     class Meta:
         ordering = ["sort_order", "id"]
 
+    def resolved_url(self, request=None):
+        """Absolute URL for uploaded files; pass-through for external URLs."""
+        if self.file:
+            return request.build_absolute_uri(self.file.url) if request else self.file.url
+        return self.url
+
     def __str__(self):
-        return f"{self.recipe.name} image #{self.sort_order}"
+        return f"{self.recipe.name} {self.kind} #{self.sort_order}"
 
 
 class RecipeCustomization(models.Model):

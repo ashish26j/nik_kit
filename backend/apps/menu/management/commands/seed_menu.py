@@ -9,6 +9,7 @@ from apps.menu.models import (
     CustomizationOption,
     Recipe,
     RecipeCustomization,
+    RecipeMedia,
     Section,
 )
 
@@ -77,6 +78,26 @@ class Command(BaseCommand):
         Recipe.objects.filter(section__slug="snacks").update(
             default_accompaniment="Hari & khatti-mithi chutney"
         )
+
+        # Sample media gallery (placeholder images + a video link) — the owner
+        # uploads real food photos via Django admin.
+        media_seed = {
+            "Aloo Paratha": [
+                ("IMAGE", "https://picsum.photos/seed/aloo1/900/650", ""),
+                ("IMAGE", "https://picsum.photos/seed/aloo2/900/650", ""),
+                ("VIDEO", "https://instagram.com/bstvaranasi", "Watch on Instagram"),
+            ],
+            "Paneer Paratha": [
+                ("IMAGE", "https://picsum.photos/seed/paneer1/900/650", ""),
+                ("IMAGE", "https://picsum.photos/seed/paneer2/900/650", ""),
+            ],
+            "Samosa": [("IMAGE", "https://picsum.photos/seed/samosa1/900/650", "")],
+        }
+        for rname, items in media_seed.items():
+            recipe = Recipe.objects.filter(name=rname).first()
+            if recipe and not recipe.media.exists():
+                for i, (kind, url, cap) in enumerate(items, start=1):
+                    RecipeMedia.objects.create(recipe=recipe, kind=kind, url=url, caption=cap, sort_order=i)
 
         # Demo: one available item that's display-only (not orderable) — P6 toggle.
         Recipe.objects.filter(name="Kachori").update(ordering_enabled=False)

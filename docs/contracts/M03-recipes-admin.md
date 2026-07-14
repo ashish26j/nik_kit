@@ -60,13 +60,16 @@ All writes require **`IsAdmin`** (M01). Deny by default.
 | `ordering_enabled` | bool | default `true`. Admin per-recipe toggle for the **Order now / Order for later** modes (see [M05](M05-cart-order.md)). When `false`, the recipe shows **no ordering-mode options** (not orderable). *(Confirm interaction with `display_status` at build time — both gate orderability.)* |
 | `created_at`/`updated_at` | datetime | |
 
-**`RecipeImage`**
+**`RecipeMedia`** (ordered gallery — swipeable carousel in the client)
 | Field | Type | Notes |
 |---|---|---|
 | `id` | int PK | |
-| `recipe_id` | FK → Recipe | |
-| `file` | image | ≤5 MB, jpeg/png/webp |
-| `sort_order` | int | first = thumbnail |
+| `recipe_id` | FK → Recipe | related_name `media` |
+| `kind` | enum `IMAGE`\|`VIDEO`\|`LINK` | IMAGE shows in-app (tap→full); VIDEO/LINK open externally |
+| `file` | image, nullable | uploaded image (≤5 MB, jpeg/png/webp) |
+| `url` | URL, blank | external image / video / link (used when no `file`) |
+| `caption` | varchar(140) | optional |
+| `sort_order` | int | first `IMAGE` = the card thumbnail |
 
 ## 5. API surface (all `IsAdmin` unless noted)
 

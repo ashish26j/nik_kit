@@ -108,7 +108,19 @@
         { "id": "P7.4", "name": "TEST_P7_T01..T06; full suite 49/49; clean web bundle", "status": "done" }
       ]
     },
-    { "id": "P8", "name": "Web (browser) polish + real Expo web build in ui container; production hardening", "gate": "web parity + hardening (HTTPS, DEBUG off, ALLOWED_HOSTS, /admin lockdown, admin 2FA)", "status": "todo", "steps": [] },
-    { "id": "P9", "name": "EAS build → Play Store (iOS later)", "gate": "installable Android app", "status": "todo", "steps": [] }
+    {
+      "id": "P8", "name": "Recipe media gallery (M03) — swipeable carousel + full view", "branch": "P8_MEDIA_GALLERY",
+      "gate": "multi-image carousel with page dots; tap image → full-screen; video/link items open externally",
+      "status": "done",
+      "note": "RecipeMedia (IMAGE/VIDEO/LINK) replaces single-image RecipeImage. Images = in-app carousel + tap-to-full; video/reel/link = open externally (links-out decision). expo-image for smooth loading. Sample media seeded (picsum placeholders + an Instagram video link) — owner uploads real food photos via Django admin.",
+      "steps": [
+        { "id": "P8.1", "name": "M03: RecipeMedia model (kind + file|url + caption + sort_order); dropped RecipeImage; admin inline; seed sample gallery", "status": "done" },
+        { "id": "P8.2", "name": "M02: recipe detail returns media[]; list thumbnail = first IMAGE", "status": "done" },
+        { "id": "P8.3", "name": "Expo: MediaCarousel (paged FlatList + dots) + full-screen image modal + video/link tiles (open out); expo-image on cards + hero; 'photos coming soon' placeholder", "status": "done" },
+        { "id": "P8.4", "name": "TEST_P1_T10/T11; full suite 60/60; verified via web (swipe, dots, tap-to-full, video tile)", "status": "done" }
+      ]
+    },
+    { "id": "P9", "name": "Web (browser) polish + real Expo web build in ui container; production hardening", "gate": "web parity + hardening (HTTPS, DEBUG off, ALLOWED_HOSTS, /admin lockdown, admin 2FA)", "status": "todo", "steps": [] },
+    { "id": "P10", "name": "EAS build → Play Store (iOS later)", "gate": "installable Android app", "status": "todo", "steps": [] }
   ]
 }

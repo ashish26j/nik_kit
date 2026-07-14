@@ -39,7 +39,8 @@ Reads entities owned by **M03** (`Section`, `Recipe`) and **M04**
 **`Section`** (owned M03): `id`, `name` (`Parathas|Snacks|Sweets`), `slug`,
 `sort_order`, `is_active`.
 **`Recipe`** (owned M03): `id`, `section_id`, `name`, `price`, `description`,
-`images[]`, `display_status` (`AVAILABLE`/`UNAVAILABLE`/`HIDDEN`), `is_sweet`.
+`media[]` (images + video/link, ordered — first image = thumbnail),
+`display_status` (`AVAILABLE`/`UNAVAILABLE`/`HIDDEN`), `is_sweet`.
 
 **Store status** (owned by **M09** `BusinessClosure`): whether the business is open now
 and, if closed, until when — surfaced publicly here for the storefront banner.
@@ -75,7 +76,9 @@ Full detail incl. description, all images, and the **customization groups** (fro
 needed to render the "make it yours" screen.
 ```json
 { "id": 10, "section": "Parathas", "name": "Aloo Paratha", "price": "60.00",
-  "description": "Stuffed potato flatbread…", "images": ["/media/…1.jpg","…2.jpg"],
+  "description": "Stuffed potato flatbread…",
+  "media": [ { "kind": "IMAGE", "url": "/media/…1.jpg", "caption": "" },
+             { "kind": "VIDEO", "url": "https://instagram.com/…", "caption": "Reel" } ],
   "is_sweet": false,
   "default_accompaniment": "Pickle",  | ""  (included free side, shown as "Served with …")
   "chef_style": { "platform": "INSTAGRAM", "url": "https://instagram.com/p/…" } | null,

@@ -262,8 +262,9 @@ Blueprint (vision, one page)
 | **P5** | **Chef & Social (M12)** — About-Chef page + per-recipe "Check Chef style of making" (Instagram) |
 | **P6** | **Order modes** — Order now (ready ~1h) / Order for later (scheduled); per-recipe admin toggle (M03 + M05) |
 | **P7** | **Client account area + Email-OTP** — My Orders + Profile + passwordless account restore (M13 + M01) |
-| **P8** | Web (browser) polish + PWA/parity; production hardening |
-| **P9** | EAS build → Play Store; (iOS later) |
+| **P8** | **Recipe media gallery (M03)** — swipeable carousel + full-screen view; video/link open out |
+| **P9** | Web (browser) polish + PWA/parity; production hardening |
+| **P10** | EAS build → Play Store; (iOS later) |
 | *(later)* | Healthiness engine (M11); Learn-from-Chef bookings (feature C, unscoped) |
 
 ---

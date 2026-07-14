@@ -33,8 +33,8 @@ class RecipeListSerializer(serializers.ModelSerializer):
         ]
 
     def get_thumbnail(self, obj):
-        first = obj.images.first()
-        return _abs(self.context.get("request"), first.file.url) if first else None
+        first = obj.media.filter(kind="IMAGE").first()
+        return first.resolved_url(self.context.get("request")) if first else None
 
 
 class OptionSerializer(serializers.ModelSerializer):
@@ -54,7 +54,7 @@ class GroupSerializer(serializers.ModelSerializer):
 
 class RecipeDetailSerializer(serializers.ModelSerializer):
     section = serializers.CharField(source="section.name", read_only=True)
-    images = serializers.SerializerMethodField()
+    media = serializers.SerializerMethodField()
     is_available = serializers.BooleanField(read_only=True)
     is_orderable = serializers.BooleanField(read_only=True)
     chef_style = serializers.SerializerMethodField()
@@ -68,7 +68,7 @@ class RecipeDetailSerializer(serializers.ModelSerializer):
             "name",
             "price",
             "description",
-            "images",
+            "media",
             "is_sweet",
             "default_accompaniment",
             "display_status",
@@ -84,9 +84,12 @@ class RecipeDetailSerializer(serializers.ModelSerializer):
             return {"platform": obj.chef_style_platform, "url": obj.chef_style_url}
         return None
 
-    def get_images(self, obj):
+    def get_media(self, obj):
         request = self.context.get("request")
-        return [_abs(request, img.file.url) for img in obj.images.all()]
+        return [
+            {"kind": m.kind, "url": m.resolved_url(request), "caption": m.caption}
+            for m in obj.media.all()
+        ]
 
     def get_customization(self, obj):
         groups = [
